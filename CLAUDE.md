@@ -12,13 +12,16 @@ Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submi
 - **Fable 5.2 only for:** (1) wiring C's model into the app (route, return map, verdict: a wrong number on screen loses the defense), (2) mission mode and the MR ↔ VR button (guion §22.9), (3) a bug Opus could not close in two tries, (4) the last check before the freeze on Sunday. Close the Fable session when that piece is done.
 - Check Claude usage at noon and at 17:00; if Fable is above 70 % of its limit, everything goes to Opus.
 
-**Where things stand (14/11, 10:55):**
+**Where things stand (14/11, 11:15):**
 
-1. Three local commits on `main`: the Developer Hub project, this file, and the scene built by code with its automatic test (32 checks of 32, three screenshots). Branches `model`, `docs` and `web` exist locally at commit 2.
-2. **The first push was started at 10:49 and was still hanging at 10:52** (the venue network took 18 s just to open a connection to github.com). Run `git status -sb` and `git branch -a -v` first: if `origin/main` is missing, push again (`git push -u origin main model docs web`); if it hangs for more than 3 minutes, use the phone's hotspot.
-3. **Next piece: "Gale terrain and layers"** (guion §3, pieces 1 and 2; hand-off at H1 13:00). Replace `TestTerrain` with a loader for `Assets/StreamingAssets/Site/` (contract in guion §22.7: `site.json`, `heightmap.r16` 513 × 513 little-endian, first row north, sampled down to 257 × 257 nodes) and paint three layers from the heights: height, slope (blue / orange / vermilion, hatched over 20°) and return on foot (needs C's `ReturnMap`; until it lands, a stand-in marked TODO). While B's package has not arrived, keep the synthetic terrain and its "not Mars data" label; when it arrives, the label goes and the legend names mission, instrument and resolution from `site.json` → `sources`. Extend `AutoTest` with the new checks and screenshots.
-4. Unity closed by itself at 10:42 with a GPU error (`d3d12: device removed`, 887a0005) right after importing scripts. Not caused by the code. If it repeats, tell Daniel and start Unity with `-force-d3d11`.
-5. Still unseen in the Quest: the scene (passthrough, table, panel text over the room). Daniel builds it; read `adb logcat` yourself.
+1. Four local commits on `main`; the last one (`49b3df9`) is "Gale terrain and layers". Branches `model`, `docs` and `web` exist locally at commit 2.
+2. **Nothing is on GitHub yet.** Pushes at 10:49, 10:59, 11:01 and 11:14 failed on the venue WiFi (SSL cut, connection reset, then no DNS for github.com); the repository is only 106 KB. Run `git branch -a -v` first: if `origin/main` is missing, ask Daniel to switch the laptop to the phone's hotspot and push (`git push -u origin main model docs web`).
+3. **"Gale terrain and layers" is written and passes the test** (65 checks, seven screenshots, still on the synthetic terrain). `SiteLoader` reads `Assets/StreamingAssets/Site/` by the contract and falls back to the synthetic terrain with its "not Mars data" label; `GaleTerrain` paints height (10 m contours), slope (Okabe-Ito blue under 10°, orange 10–20°, vermilion hatched over 20°) and return on foot (5-minute rings, habitat dot). The return layer is `ReturnStandIn` (straight line at 19.3 min/km), labelled PLACEHOLDER on the panel: swap it for C's `ReturnMap` (a Fable piece). Desktop mode: keys 1, 2, 3 switch layers. **When B's package lands**, just rerun the test: the site checks (contract fields, every source named, panel naming mission, instrument and resolution) switch on by themselves.
+4. **Next piece: "Route, return map, stops and pillars"** needs C's model in `Assets/Walkback/Model/` (Fable). While it is missing, Opus can do the piece after it: "Pointer, table, globe and jump" (layer buttons on the panel go there).
+5. `ProjectSettings/AudioManager.asset` changed by itself (Meta XR Audio as spatializer, likely Meta's setup tool). Left uncommitted: ask Daniel.
+6. Running the test with Unity open: the trigger file can be picked up *before* Unity recompiles new code, so the first run after an edit may test the old scripts. Give Unity focus, wait for the compile, then create `Temp/walkback-run-test` again and check the report's time.
+7. Unity closed by itself at 10:42 with a GPU error (`d3d12: device removed`, 887a0005) right after importing scripts. Not caused by the code. If it repeats, tell Daniel and start Unity with `-force-d3d11`. It did not repeat at 11:09–11:12.
+8. Still unseen in the Quest: the scene and the three layers (passthrough, table, panel text over the room). Daniel builds it; read `adb logcat` yourself. Also unseen by Daniel: the seven screenshots in `TestOutput/`.
 
 **Pushes and commits (Daniel, 14/11 10:48: "automatizá hasta los push y commits"):** session A commits and pushes `main` by itself after each piece that passes the automatic test. This replaces "only Daniel pushes" for session A's own work. Still ask Daniel before: force-pushing, deleting branches, merging `model`, `docs` or `web` into `main`, making the repository public, tagging the release.
 
@@ -76,7 +79,7 @@ Unity **6000.4.6f1** (the 2022.3 also installed is not used) · Meta XR SDK **20
 | Piece | Written | Compiles | Passes the test without headset | Seen in the Quest |
 |---|---|---|---|---|
 | Scene built by code + automatic test | ✅ | ✅ | ✅ 10:46, 32 checks | ⬜ |
-| Gale terrain and layers (height, slope, return) | ⬜ | ⬜ | ⬜ | ⬜ |
+| Gale terrain and layers (height, slope, return) | ✅ | ✅ | ✅ 11:12, 65 checks (synthetic terrain; return is a placeholder) | ⬜ |
 | Route, return map, stops and pillars (with C's model) | ⬜ | ⬜ | ⬜ | ⬜ |
 | Panel: verdict, legend, conditions, stop cards | ⬜ | ⬜ | ⬜ | ⬜ |
 | Pointer, table, globe and jump | ⬜ | ⬜ | ⬜ | ⬜ |
