@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Walkback · Pitch</title>
+<title>Walkback · Defensa</title>
 <style>
   @font-face { font-family: Inter; font-weight: 400; src: url(fonts/Inter-Regular.woff2) format("woff2"); }
   @font-face { font-family: Inter; font-weight: 600; src: url(fonts/Inter-SemiBold.woff2) format("woff2"); }
@@ -114,6 +114,18 @@
   .flow div { background: var(--panel); border: 2px solid var(--line); border-radius: 16px; padding: 28px 30px; font-size: 30px; font-weight: 700; }
   .flow i { font-style: normal; font-size: 44px; color: var(--amber); }
 
+  /* 3D scenes */
+  .scene-wrap { position: relative; }
+  .scene-wrap canvas { display: block; width: 100%; height: 100%; }
+  .scene-wrap .fb { display: none; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .scene-wrap.fallback canvas { display: none; }
+  .scene-wrap.fallback .fb { display: block; }
+  .s2 .scene-wrap { width: 1000px; height: 760px; border-radius: 20px; overflow: hidden; border: 2px solid var(--line); background: #07080b; }
+  .s6 .scene-wrap { position: absolute; right: 150px; top: 36px; width: 360px; height: 360px; }
+  .s6 table { margin-top: 56px; }
+  .s7 .scene-wrap { position: absolute; inset: 0; }
+  .globe-fb { border-radius: 50%; background: #222 url(img/mars_global.jpg) 0 50% / auto 100%; }
+
   /* chrome: counter, timer, notes */
   #hud { position: fixed; right: 18px; bottom: 14px; font-size: 14px; color: #6d6459; z-index: 5; user-select: none; }
   #notes { position: fixed; left: 0; right: 0; bottom: 0; max-height: 42vh; overflow: auto; background: rgba(10,11,15,.96); border-top: 2px solid var(--amber); padding: 18px 28px 26px; font-size: 18px; line-height: 1.5; display: none; z-index: 6; }
@@ -131,10 +143,10 @@
     «Imaginen que son el primer astronauta en Marte. Abren la puerta del hábitat. Adelante, un cráter que nadie pisó jamás. Atrás, el único lugar con aire en 225 millones de kilómetros. Desde ese momento, cada paso tiene un precio: oxígeno. Y la pregunta deja de ser hasta dónde pueden llegar. Es: ¿cuánto tardan en volver?»
     <h4>Cómo</h4> Pausa en cada punto · «Adelante» mirando a un lado, «Atrás» al otro · la última frase lenta. La pregunta se escribe sola en pantalla a los 20 s (o con la tecla Q).
     <h4>Puente</h4> → «Los mapas de Marte te muestran a dónde ir…»">
-    <img class="bg" src="img/sajama_crop.jpg" alt="Curiosity Mastcam view of the boxwork ridges at Nevado Sajama, Gale crater">
+    <img class="bg" src="img/sajama_crop.jpg" alt="Vista de Mastcam de Curiosity: las crestas del boxwork en Nevado Sajama, cráter Gale">
     <div class="shade"></div>
-    <div class="q" id="hookq">How long would it take you to walk back?</div>
-    <div class="credit">Curiosity Mastcam, Nevado Sajama, sols 4714–4741 · PIA26696 · NASA/JPL-Caltech/MSSS</div>
+    <div class="q" id="hookq">¿Cuánto tardarías en volver caminando?</div>
+    <div class="credit">Curiosity, Mastcam, Nevado Sajama, soles 4714–4741 · PIA26696 · NASA/JPL-Caltech/MSSS</div>
   </section>
 
   <!-- 2 · 0:30–1:05 · the map lies at human scale -->
@@ -142,27 +154,28 @@
     <h4>Lo que dice Daniel</h4>
     «Los mapas de Marte te muestran a dónde ir. No te dicen si vas a poder volver. Esto es Gale, un kilómetro real, con el relieve de HiRISE a un metro. La línea blanca es la recta. La ámbar es la ruta segura: nunca pasa de 20 grados, el límite de la NASA. La recta tarda <b data-k='straightMinutes'></b> minutos; la segura, <b data-k='safeMinutes'></b>.»
     <h4>Puente</h4> → «Para eso hicimos Walkback.»
-    <p class='warn'>⚠️ Los minutos salen de la app cuando el modelo de caminata esté conectado (hoy el panel muestra valores de prueba). Hasta entonces la lámina muestra «—».</p>">
+    <p class='warn'>⚠️ Los minutos salen de la app cuando el modelo de caminata esté conectado (hoy el panel muestra valores de prueba). Hasta entonces la lámina muestra «?». El 3D es el terreno real; la ruta ámbar es la de menor distancia sin pasar de 20° (calculada para la lámina): los minutos que se dicen salen de la app.</p>">
     <div class="pad">
-      <div class="tag">Gale crater · 1 km² · real NASA terrain</div>
+      <div class="tag">Cráter Gale · 1 km² · terreno real de la NASA</div>
       <div class="two">
-        <img class="shot" src="img/route_01_top.jpg" alt="Walkback route from the habitat to Nevado Sajama on the Gale terrain">
+        <div class="scene-wrap"><canvas data-scene="gale" data-w="1000" data-h="760"></canvas><img class="fb" src="img/route_01_top.jpg" alt="Ruta de Walkback del hábitat a Nevado Sajama sobre el terreno de Gale"></div>
         <div>
-          <h2>Mars maps show you where to go.<br><span class="amber">Not whether you can get back.</span></h2>
+          <h2>Los mapas de Marte te muestran a dónde ir.<br><span class="amber">No te dicen si vas a poder volver.</span></h2>
           <div class="vs">
-            <div><div class="n" data-k="straightMinutes">—</div><div class="l">min · straight line</div></div>
+            <div><div class="n" data-k="straightMinutes">—</div><div class="l">min · en línea recta</div></div>
             <div class="muted" style="font-size:48px;padding-bottom:40px">vs</div>
-            <div><div class="n amber" data-k="safeMinutes">—</div><div class="l">min · safe route</div></div>
+            <div><div class="n amber" data-k="safeMinutes">—</div><div class="l">min · ruta segura</div></div>
           </div>
           <div class="key">
-            <span><b style="background:#fff"></b>Straight line</span>
-            <span><b style="background:var(--amber)"></b>Safe route</span>
-            <span><b style="background:var(--vermilion)"></b>Over <span data-k="slopeLimitDeg">20</span>°: NASA slope limit</span>
+            <span><b style="background:#fff"></b>Línea recta</span>
+            <span><b style="background:var(--amber)"></b>Ruta segura</span>
+            <span><b style="background:var(--vermilion)"></b>Más de <span data-k="slopeLimitDeg">20</span>°: el límite de la NASA</span>
+            <span><b style="background:var(--sky)"></b>El camino real de Curiosity</span>
           </div>
         </div>
       </div>
     </div>
-    <div class="credit">Terrain: MRO HiRISE DEM, 1 m (NASA Mars Trek) · Walkback screenshot</div>
+    <div class="credit">Relieve: MRO HiRISE, 1 m (NASA Mars Trek) · foto: HiRISE 25 cm (USGS) · camino de Curiosity: NASA/JPL-Caltech</div>
   </section>
 
   <!-- 3 · 1:05–1:40 · one calculation, two modes -->
@@ -170,23 +183,24 @@
     <h4>Lo que dice Daniel</h4>
     «Se llama Walkback por una regla de las misiones Apolo: nunca alejarse más de lo que podés volver caminando. Walkback hace un solo cálculo, en dos momentos: en el hábitat, para planificar sobre la mesa; y afuera, en el casco, durante la caminata. Los demás te muestran datos de la NASA. Nosotros te dejamos caminar sobre ellos, y volver. Miren.»
     <p class='warn'>⚠️ La regla de Apolo («walkback limit», SP-350 cap. 14 y SP-4204 cap. 23) se dice solo si la cita textual está en docs/SOURCES.md.</p>
-    <p class='warn'>⚠️ La tarjeta MISSION usa una captura de la mesa hasta que exista la del HUD: cambiar img/ cuando esté.</p>">
+    <p class='warn'>⚠️ La tarjeta MISIÓN usa una captura de la mesa hasta que exista la del HUD: cambiar img/ cuando esté.</p>">
     <div class="pad">
-      <div class="center-q">Can I still make it back?</div>
+      <div class="center-q">¿Todavía llego a volver?</div>
       <div class="cards">
         <div class="card">
-          <h3 class="amber">PLAN</h3>
-          <img src="img/panel_01_viable.jpg" alt="Plan mode: the verdict panel over the table map">
-          <p>In the habitat: the real terrain on any table. Pick stops, get the safe route, minutes, oxygen and the verdict.</p>
+          <h3 class="amber">PLANIFICAR</h3>
+          <img src="img/panel_01_viable.jpg" alt="Modo plan: el panel con el veredicto sobre la mesa">
+          <p>En el hábitat: el terreno real sobre cualquier mesa. Elegís las paradas y te da la ruta segura, los minutos, el oxígeno y el veredicto.</p>
         </div>
         <div class="card">
-          <h3 class="amber">MISSION</h3>
-          <img src="img/route_02_eye.jpg" alt="Mission mode: the route seen at eye level">
-          <p>On the walk: the same numbers in the helmet. Oxygen, time to get back, the path on the ground.</p>
+          <h3 class="amber">MISIÓN</h3>
+          <img src="img/route_02_eye.jpg" alt="Modo misión: la ruta a la altura de los ojos">
+          <p>En la caminata: los mismos números en el casco. El oxígeno, el tiempo para volver y el camino en el suelo.</p>
         </div>
       </div>
       <div class="brand"><b>Walkback</b> · <span class="amber">The safest way to go far.</span></div>
-      <div class="stand">Meta Quest 3 stands in for the helmet display</div>
+      <div class="stand" style="font-size:28px">La forma más segura de llegar lejos</div>
+      <div class="stand">El Meta Quest 3 hace de pantalla del casco</div>
     </div>
   </section>
 
@@ -197,7 +211,7 @@
     2. <b>Botón → VR:</b> «Ahora imaginen que salimos del hábitat, en Gale.» Orlando camina hacia el pilar: el HUD, la muñeca con el mapa 3D, la llegada. «Esto es lo que vio Curiosity parado acá.»<br>
     3. <b>Botón → MR:</b> «Y así lo vería el astronauta en su casco: la misma información, sobre el terreno real.»
     <h4>Si falla</h4> Cable con scrcpy → el video de 30 s → las capturas.">
-    <div class="live"><div class="dot"></div><h1>LIVE</h1><p>Meta Quest 3 · streamed</p></div>
+    <div class="live"><div class="dot"></div><h1>EN VIVO</h1><p>Meta Quest 3 · transmitido</p></div>
   </section>
 
   <!-- 5 · 3:40–4:10 · why believe it -->
@@ -206,27 +220,27 @@
     «¿Por qué creerle? El oxígeno no lo inventamos: es el modelo de caminata publicado por la NASA, con la gravedad de Marte<span data-show='btuConfirmed'>, y en llano da el mismo ritmo para el que la NASA diseñó la mochila de Apolo</span>. Lo comparamos con el camino real de Curiosity en este mismo kilómetro. Y lo que no ve, te lo decimos: rocas de menos de <b data-k='rockLimitM'></b> metros. Por eso el mapa planifica y el astronauta, en el terreno, tiene la última palabra.»
     <p class='warn'>⚠️ El número grande (1,200 BTU/hr) aparece solo con btuConfirmed: true en data.js (el enlace en docs/SOURCES.md). Las rocas: una sola cifra, la confirma la sesión B.</p>">
     <div class="pad">
-      <div class="tag">Why believe it</div>
+      <div class="tag">Por qué creerle</div>
       <div id="btuBlock">
         <div class="big"><span data-k="btuPerHour">1,200</span> <span style="font-size:60px">BTU/hr</span></div>
-        <p class="muted" style="margin-top:8px">= Apollo backpack design rate · our model, walking on flat ground</p>
+        <p class="muted" style="margin-top:8px">= el ritmo de diseño de la mochila de Apolo · nuestro modelo, caminando en llano</p>
       </div>
-      <h2 id="btuAlt" style="display:none">Every number has a NASA source.</h2>
+      <h2 id="btuAlt" style="display:none">Cada número tiene su fuente de la NASA.</h2>
       <div class="cols">
         <div class="col">
           <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="#f5b301" stroke-width="4"><circle cx="32" cy="32" r="26"/><path d="M14 40c6-10 12-14 18-14s12 4 18 14"/></svg>
-          <h3>NASA model</h3>
-          <p>NASA's walking model for suited astronauts, set to Mars gravity (0.38 g). Going downhill never saves oxygen. A 30-min reserve is never touched.</p>
+          <h3>Modelo de la NASA</h3>
+          <p>El modelo de caminata de la NASA para astronautas con traje, con la gravedad de Marte (0,38 g). Bajar no ahorra oxígeno. La reserva de 30 min nunca se toca.</p>
         </div>
         <div class="col">
           <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="#f5b301" stroke-width="4"><path d="M12 34l14 14 26-30"/></svg>
-          <h3>Checked</h3>
-          <p>Compared with Curiosity's real path here: <span data-k="site.roverPositions">85</span> positions, median slope <span data-k="site.roverSlopeMedian">8.8</span>°. <span data-k="fps">72</span> fps on Quest 3.<span data-show="testers"> <span data-k="testers"></span> testers, ease <span data-k="testerScore"></span>/7.</span></p>
+          <h3>Comparado</h3>
+          <p>Con el camino real de Curiosity en este mismo lugar: <span data-k="site.roverPositions">85</span> posiciones, pendiente mediana de <span data-k="site.roverSlopeMedian">8.8</span>°. <span data-k="fps">72</span> fps en el Quest 3.<span data-show="testers"> <span data-k="testers"></span> personas lo probaron: <span data-k="testerScore"></span>/7 de facilidad.</span></p>
         </div>
         <div class="col">
           <svg class="icon" viewBox="0 0 64 64" fill="none" stroke="#f5b301" stroke-width="4"><path d="M32 8l26 46H6z"/><path d="M32 26v14M32 46v2"/></svg>
-          <h3>Limits</h3>
-          <p><span data-show="rockLimitM">Rocks smaller than <span data-k="rockLimitM"></span> m are not visible. </span>The 1 m terrain misses the sandy hollows, so every cell counts as rock. The map plans; the astronaut decides.</p>
+          <h3>Límites</h3>
+          <p><span data-show="rockLimitM">Las rocas de menos de <span data-k="rockLimitM"></span> m no se ven. </span>El relieve de 1 m no muestra los huecos con arena: todo cuenta como roca. El mapa planifica; el astronauta decide.</p>
         </div>
       </div>
     </div>
@@ -238,19 +252,19 @@
     «Cada número tiene su misión y su fuente. Y elegimos el lugar que el reto mismo usa de ejemplo: Curiosity subiendo Mount Sharp. Gale fue propuesto para exploración humana en 2015.»
     <p class='warn'>⚠️ Se dice «propuesto», nunca «elegido».</p>">
     <div class="pad">
-      <div class="tag">Every number has its mission</div>
-      <h2>Gale: proposed for human exploration<br><span class="muted" style="font-size:40px;font-weight:600">NASA workshop, 2015</span></h2>
-      <div class="globe" aria-label="Mars, Viking MDIM 2.1"></div>
+      <div class="tag">Cada número tiene su misión</div>
+      <h2>Gale: propuesto para<br>exploración humana<br><span class="muted" style="font-size:40px;font-weight:600">Taller de la NASA, 2015</span></h2>
+      <div class="scene-wrap"><canvas data-scene="globe" data-w="420" data-h="420"></canvas><div class="fb globe-fb"></div></div>
       <table>
-        <tr><th>Layer</th><th>Mission</th><th>Instrument</th><th>Resolution</th><th>Used for</th></tr>
-        <tr><td>Terrain</td><td>Mars Reconnaissance Orbiter</td><td>HiRISE (Mars Trek DEM)</td><td>1 m</td><td>Slope, route, oxygen</td></tr>
-        <tr><td>Base photo</td><td>Mars Reconnaissance Orbiter</td><td>HiRISE (USGS mosaic)</td><td>25 cm</td><td>Seeing the ground</td></tr>
-        <tr><td>Real path</td><td>Curiosity (MSL)</td><td>Rover positions</td><td>per drive</td><td>Validation</td></tr>
-        <tr><td>Panorama</td><td>Curiosity (MSL)</td><td>Mastcam</td><td>—</td><td>“What Curiosity saw here”</td></tr>
-        <tr><td>Weather</td><td>Curiosity (MSL)</td><td>REMS</td><td>—</td><td>Current conditions, dated</td></tr>
-        <tr><td>Radiation</td><td>Curiosity (MSL)</td><td>RAD</td><td>—</td><td>0.64 mSv per day</td></tr>
-        <tr><td>Space weather</td><td>NASA CCMC</td><td>DONKI</td><td>—</td><td>Solar storms this week</td></tr>
-        <tr><td>Planet</td><td>Viking</td><td>MDIM 2.1</td><td>1 km</td><td>The opening globe</td></tr>
+        <tr><th>Capa</th><th>Misión</th><th>Instrumento</th><th>Resolución</th><th>Para qué</th></tr>
+        <tr><td>Relieve</td><td>Mars Reconnaissance Orbiter</td><td>HiRISE (Mars Trek)</td><td>1 m</td><td>Pendiente, ruta, oxígeno</td></tr>
+        <tr><td>Foto de base</td><td>Mars Reconnaissance Orbiter</td><td>HiRISE (mosaico del USGS)</td><td>25 cm</td><td>Ver el suelo</td></tr>
+        <tr><td>Camino real</td><td>Curiosity (MSL)</td><td>Posiciones del rover</td><td>por tramo</td><td>Comparar</td></tr>
+        <tr><td>Panorámica</td><td>Curiosity (MSL)</td><td>Mastcam</td><td>—</td><td>«Esto vio Curiosity acá»</td></tr>
+        <tr><td>Clima</td><td>Curiosity (MSL)</td><td>REMS</td><td>—</td><td>Condiciones, con su fecha</td></tr>
+        <tr><td>Radiación</td><td>Curiosity (MSL)</td><td>RAD</td><td>—</td><td>0,64 mSv por día</td></tr>
+        <tr><td>Clima espacial</td><td>NASA CCMC</td><td>DONKI</td><td>—</td><td>Tormentas solares de la semana</td></tr>
+        <tr><td>Planeta</td><td>Viking</td><td>MDIM 2.1</td><td>1 km</td><td>El globo de apertura</td></tr>
       </table>
     </div>
   </section>
@@ -259,11 +273,11 @@
   <section class="slide s7" data-t="4:30–4:45" data-notes="
     <h4>Lo que dice Daniel</h4>
     «Que el astronauta piense en la ciencia, no en el camino de vuelta. De eso se encarga Walkback.»
-    <p class='warn'>⚠️ Plan: el astronauta 3D de la NASA (Astronaut.glb) sobre una cresta mirando un pilar de luz. Hoy va la foto de Nevado Sajama: cambiar img/ cuando la sesión A tenga la captura.</p>">
-    <img class="bg" src="img/sajama_crop.jpg" alt="Boxwork ridges in Gale crater" style="filter:saturate(.8) brightness(.7)">
-    <div class="shade"></div>
-    <div class="q">Let astronauts think about the science,<br><span class="amber">not the way back.</span></div>
-    <div class="credit">Curiosity Mastcam · PIA26696 · NASA/JPL-Caltech/MSSS</div>
+    <p class='warn'>El astronauta 3D de la NASA (Astronaut.glb) mira el pilar de luz, con Nevado Sajama de fondo.</p>">
+    <div class="scene-wrap"><canvas data-scene="astronaut" data-w="1920" data-h="1080"></canvas><img class="fb" src="img/sajama_crop.jpg" alt="Crestas del boxwork en el cráter Gale"></div>
+    <div class="shade" style="background:linear-gradient(180deg,rgba(13,15,20,0) 45%,rgba(13,15,20,.9) 88%)"></div>
+    <div class="q">Que el astronauta piense en la ciencia,<br><span class="amber">no en el camino de vuelta.</span></div>
+    <div class="credit">Astronauta: NASA 3D Resources · fondo: Curiosity Mastcam, PIA26696, NASA/JPL-Caltech/MSSS</div>
   </section>
 
   <!-- 8 · 4:45–5:00 · close -->
@@ -274,38 +288,38 @@
     <div class="pad">
       <h1>Walkback</h1>
       <div class="motto">The safest way to go far.</div>
-      <div class="qr" id="qr">QR to the repository<br>(added Sunday)</div>
+      <div class="qr" id="qr">QR al repositorio<br>(se agrega el domingo)</div>
     </div>
-    <div class="foot">Team MARSXR · NASA Space Apps 2026 · Santa Cruz, Bolivia · Built with AI (Claude), declared</div>
+    <div class="foot">Equipo MARSXR · NASA Space Apps 2026 · Santa Cruz, Bolivia · Hecho con IA (Claude), declarado</div>
   </section>
 
   <!-- A · annex: questions -->
-  <section class="slide sA" data-t="annex" data-notes="<h4>Solo si preguntan</h4> Respuestas completas en el guion §22.3 y §22.11.">
+  <section class="slide sA" data-t="respaldo" data-notes="<h4>Solo si preguntan</h4> Respuestas completas en el guion §22.3 y §22.11.">
     <div class="pad">
-      <div class="tag">If you ask</div>
-      <h2>Questions we expect</h2>
+      <div class="tag">Si preguntan</div>
+      <h2>Las preguntas que esperamos</h2>
       <div class="qa">
-        <div><b>Is there GPS on Mars?</b><span>No. Rovers locate themselves with cameras and motion sensors, corrected against HiRISE. The Quest does the same in this room.</span></div>
-        <div><b>What is “live”?</b><span>The calculation. Every step recomputes oxygen and the way back in the headset, with no signal. Weather is the latest report, with its date.</span></div>
-        <div><b>Why not a tablet?</b><span>Hands are busy and looking down is risky outside. The calculation runs on any screen, a tablet too.</span></div>
-        <div><b>Is it a game?</b><span>It is a prototype of the helmet display over real NASA terrain. No points, no prizes.</span></div>
+        <div><b>¿Hay GPS en Marte?</b><span>No. Los rovers se ubican con cámaras y sensores de movimiento, corregidos con las fotos de HiRISE. El Quest hace lo mismo en esta sala.</span></div>
+        <div><b>¿Qué es «en vivo»?</b><span>El cálculo: cada paso recalcula el oxígeno y la vuelta en el visor, sin señal. El clima es el último reporte, con su fecha.</span></div>
+        <div><b>¿Por qué no una tablet?</b><span>Afuera las manos van ocupadas y mirar para abajo es peligroso. El cálculo corre en cualquier pantalla, también en una tablet.</span></div>
+        <div><b>¿Es un juego?</b><span>Es el prototipo de la pantalla del casco sobre terreno real de la NASA. Sin puntos ni premios.</span></div>
       </div>
     </div>
   </section>
 
   <!-- B · annex: how it is built -->
-  <section class="slide sB" data-t="annex" data-notes="<h4>Solo si preguntan</h4> Cómo está hecho, de la descarga al visor.">
+  <section class="slide sB" data-t="respaldo" data-notes="<h4>Solo si preguntan</h4> Cómo está hecho, de la descarga al visor.">
     <div class="pad">
-      <div class="tag">If you ask</div>
-      <h2>How it is built</h2>
+      <div class="tag">Si preguntan</div>
+      <h2>Cómo está hecho</h2>
       <div class="flow">
-        <div>NASA data<br><span class="muted" style="font-size:22px;font-weight:400">HiRISE · MSL</span></div><i>→</i>
-        <div>1 km² window<br><span class="muted" style="font-size:22px;font-weight:400">GDAL</span></div><i>→</i>
-        <div>Slope<br><span class="muted" style="font-size:22px;font-weight:400">every 3.9 m</span></div><i>→</i>
-        <div>Oxygen<br><span class="muted" style="font-size:22px;font-weight:400">NASA model, 0.38 g</span></div><i>→</i>
-        <div>Headset<br><span class="muted" style="font-size:22px;font-weight:400">Unity · Quest 3</span></div>
+        <div>Datos de la NASA<br><span class="muted" style="font-size:22px;font-weight:400">HiRISE · MSL</span></div><i>→</i>
+        <div>Recorte de 1 km²<br><span class="muted" style="font-size:22px;font-weight:400">GDAL</span></div><i>→</i>
+        <div>Pendiente<br><span class="muted" style="font-size:22px;font-weight:400">cada 3,9 m</span></div><i>→</i>
+        <div>Oxígeno<br><span class="muted" style="font-size:22px;font-weight:400">modelo de la NASA, 0,38 g</span></div><i>→</i>
+        <div>Visor<br><span class="muted" style="font-size:22px;font-weight:400">Unity · Quest 3</span></div>
       </div>
-      <p class="muted" style="margin-top:60px">The calculation is plain C# with its own tests, with no Unity inside: the app only shows it. That is why it runs on any screen.</p>
+      <p class="muted" style="margin-top:60px">El cálculo es C# puro, con sus propias pruebas y sin Unity adentro: la app solo lo muestra. Por eso corre en cualquier pantalla.</p>
     </div>
   </section>
 
@@ -314,12 +328,20 @@
 <div id="notes"></div>
 <div id="hud"></div>
 
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="vendor/DRACOLoader.js"></script>
+<script src="vendor/draco_decoder_inline.js"></script>
+<script src="data/gale.js"></script>
+<script src="data/globe.js"></script>
+<script src="data/astronaut.js"></script>
+<script src="data/sajama.js"></script>
 <script src="data.js"></script>
 <script>
 (function () {
   const D = window.WALKBACK || {};
   const get = (k) => k.split('.').reduce((o, p) => (o == null ? undefined : o[p]), D);
-  const fmt = (v) => (v == null ? '—' : (typeof v === 'number' ? v.toLocaleString('en-US') : v));
+  const fmt = (v) => (v == null ? '—' : (typeof v === 'number' ? v.toLocaleString('es') : v));
 
   // Fill numbers
   const pending = new Set();
@@ -379,12 +401,13 @@
     notes.innerHTML = html;
     notes.querySelectorAll('[data-k]').forEach((el) => { el.textContent = fmt(get(el.dataset.k)); });
     notes.querySelectorAll('[data-show]').forEach((el) => { if (!get(el.dataset.show)) el.style.display = 'none'; });
+    dispatchEvent(new CustomEvent('slidechange', { detail: { slide: s, index: cur } }));
     tick();
   }
   function tick() {
     const el = t0 ? Math.floor((Date.now() - t0) / 1000) : 0;
     const mm = String(Math.floor(el / 60)).padStart(1, '0'), ss = String(el % 60).padStart(2, '0');
-    hud.textContent = `${cur + 1}/${slides.length} · ${slides[cur].dataset.t} · ${t0 ? mm + ':' + ss : 'T = start timer'} · N notes`;
+    hud.textContent = `${cur + 1}/${slides.length} · ${slides[cur].dataset.t} · ${t0 ? mm + ':' + ss : 'T = reloj'} · N = notas`;
   }
   setInterval(tick, 1000);
 
@@ -400,8 +423,10 @@
   });
   addEventListener('click', (e) => { if (!notes.contains(e.target)) show(cur + (e.clientX > innerWidth / 3 ? 1 : -1)); });
 
-  show(cur);
+  window.__showFirst = () => show(cur);
 })();
 </script>
+<script src="scenes.js"></script>
+<script>window.__showFirst();</script>
 </body>
 </html>
