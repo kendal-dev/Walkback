@@ -21,7 +21,21 @@ namespace Walkback
         public Text verdictTitle;
         public Text verdictDetail;
         public Text dataLine;
+        public Text legendLine;
         public Text footer;
+
+        /// <summary>The line under the verdict: the site and its source, or the not-Mars-data warning.</summary>
+        public void ShowSite(string sourceLine, bool isMarsData)
+        {
+            dataLine.text = sourceLine;
+            dataLine.color = isMarsData ? WalkbackTheme.Text : WalkbackTheme.Watch;
+        }
+
+        /// <summary>What the colors on the map mean (rich text).</summary>
+        public void ShowLegend(string legend)
+        {
+            legendLine.text = legend;
+        }
 
         /// <summary>Builds the panel once, at edit time, so it is saved in the scene.</summary>
         public void Build(Material backPlateMaterial, Material uiMaterial)
@@ -55,8 +69,10 @@ namespace Walkback
             verdictTitle = AddText(rect, "VerdictTitle", "NO ROUTE YET", font, uiMaterial, 96, FontStyle.Bold, WalkbackTheme.Watch, 90, 205, 1320, 130);
             verdictDetail = AddText(rect, "VerdictDetail", "Time, oxygen used and margin to return will show here.", font, uiMaterial, 40, FontStyle.Normal, WalkbackTheme.Text, 90, 350, 1320, 80);
 
-            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 38, FontStyle.Bold, WalkbackTheme.Watch, 50, 490, 1400, 60);
-            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display.", font, uiMaterial, 32, FontStyle.Normal, WalkbackTheme.TextSoft, 50, 620, 1400, 50);
+            dataLine = AddText(rect, "DataLine", "TEST TERRAIN · synthetic shape for development · not Mars data", font, uiMaterial, 34, FontStyle.Bold, WalkbackTheme.Watch, 50, 474, 1400, 52);
+            legendLine = AddText(rect, "LegendLine", "Map layer legend", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 50, 530, 1400, 88);
+            legendLine.alignment = TextAnchor.UpperLeft;
+            footer = AddText(rect, "Footer", "Meta Quest 3 stands in for the helmet display.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.TextSoft, 50, 630, 1400, 50);
         }
 
         static Text AddText(RectTransform parent, string name, string content, Font font, Material material, int size, FontStyle style, Color color, float x, float y, float w, float h)

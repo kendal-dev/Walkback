@@ -92,16 +92,21 @@ namespace Walkback.EditorTools
             // Map: one square kilometer scaled to the table, relief not exaggerated
             var mapRoot = new GameObject("MapRoot");
             mapRoot.transform.position = new Vector3(0f, TableHeight + 0.01f, TableDistance);
-            mapRoot.transform.localScale = Vector3.one * (MapSideOnTable / TestTerrain.SideMeters);
-            var terrainObject = new GameObject("Terrain", typeof(MeshFilter), typeof(MeshRenderer), typeof(TestTerrain));
+            // The site side is read from site.json (1000 m by contract); the map is always 1 m on the table.
+            var site = SiteLoader.Load();
+            mapRoot.transform.localScale = Vector3.one * (MapSideOnTable / site.SideMeters);
+            var terrainObject = new GameObject("Terrain", typeof(MeshFilter), typeof(MeshRenderer), typeof(GaleTerrain));
             terrainObject.transform.SetParent(mapRoot.transform, false);
-            terrainObject.GetComponent<MeshRenderer>().sharedMaterial = terrainMaterial;
+            var terrainRenderer = terrainObject.GetComponent<MeshRenderer>();
+            terrainRenderer.sharedMaterial = terrainMaterial;
+            terrainRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 
             // Mission panel behind the map
             var panelObject = new GameObject("MissionPanel");
             panelObject.transform.position = PanelCenter;
             var panel = panelObject.AddComponent<MissionPanel>();
             panel.Build(backPlateMaterial, uiMaterial);
+            panel.ShowSite(site.IsMarsData ? "Site: " + site.Info.name : "TEST TERRAIN · synthetic shape for development · not Mars data", site.IsMarsData);
 
             // Desktop camera (Play without a headset, and the automatic test)
             var desktopObject = new GameObject("DesktopCamera");
@@ -123,6 +128,7 @@ namespace Walkback.EditorTools
             app.table = table.transform;
             app.mapRoot = mapRoot.transform;
             app.panel = panel;
+            app.terrain = terrainObject.GetComponent<GaleTerrain>();
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };

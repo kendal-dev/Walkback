@@ -15,9 +15,12 @@ namespace Walkback
 
         public static string FilePath { get; private set; }
 
+        static bool initTried;
+
         public static void Init()
         {
-            if (writer != null) return;
+            if (writer != null || initTried) return;
+            initTried = true;
             try
             {
                 FilePath = Path.Combine(Application.persistentDataPath, "walkback.log");
@@ -45,6 +48,8 @@ namespace Walkback
 
         static void Write(string line)
         {
+            // The terrain logs from its Awake, which may run before the app's: open the file on first use.
+            if (writer == null && Application.isPlaying) Init();
             if (writer == null) return;
             try { writer.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff ") + line); }
             catch (Exception) { /* a full disk must not stop the app */ }

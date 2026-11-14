@@ -1,6 +1,7 @@
 // Written with Claude Code (AI), directed and tested by team MARSXR
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.XR;
 
 namespace Walkback
@@ -16,8 +17,28 @@ namespace Walkback
         public Transform table;
         public Transform mapRoot;
         public MissionPanel panel;
+        public GaleTerrain terrain;
 
         public bool DesktopMode { get; private set; }
+
+        /// <summary>Writes the site line and the legend of the current layer on the panel.</summary>
+        public void RefreshPanel()
+        {
+            if (panel == null || terrain == null || terrain.Site == null) return;
+            panel.ShowSite(terrain.SourceLine(), terrain.Site.IsMarsData);
+            panel.ShowLegend(terrain.LegendText(terrain.Layer));
+        }
+
+        void OnLayerChanged(MapLayer layer)
+        {
+            RefreshPanel();
+            WalkbackLog.Info("Layer shown: " + layer);
+        }
+
+        void OnDestroy()
+        {
+            if (terrain != null) terrain.LayerChanged -= OnLayerChanged;
+        }
 
         float fpsWindowStart;
         int fpsFrames;
@@ -32,6 +53,9 @@ namespace Walkback
 
         IEnumerator Start()
         {
+            if (terrain != null) terrain.LayerChanged += OnLayerChanged;
+            RefreshPanel();
+
             // The XR device needs a couple of frames to report itself.
             yield return null;
             yield return null;
@@ -46,6 +70,15 @@ namespace Walkback
 
         void Update()
         {
+            // Desktop mode: keys 1, 2, 3 switch the map layer (the pointer and panel buttons come later).
+            var keyboard = Keyboard.current;
+            if (DesktopMode && terrain != null && keyboard != null)
+            {
+                if (keyboard.digit1Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Height);
+                if (keyboard.digit2Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Slope);
+                if (keyboard.digit3Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Return);
+            }
+
             fpsFrames++;
             if (Time.unscaledDeltaTime > 0f)
                 fpsWorst = Mathf.Min(fpsWorst, 1f / Time.unscaledDeltaTime);
