@@ -4,6 +4,26 @@
 
 Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submissions at 12:00 · defense 14:00 (5 minutes of pure presentation).
 
+## If you are a new session picking up session A (the app) — start here
+
+**Which model (Daniel, 14/11 10:50): save Fable's limit for the very important things.**
+
+- **Opus 5.5 is the default for session A from now on.** The recipe is written and the first piece is in the repository: follow its style (`SceneBuilder.cs`, `AutoTest.cs`, `MissionPanel.cs`). Use Opus for: terrain and layers, the panel, pointer, table, globe and jump, commits, pushes, reading logs, fixing compile errors, updating this file.
+- **Fable 5.2 only for:** (1) wiring C's model into the app (route, return map, verdict: a wrong number on screen loses the defense), (2) mission mode and the MR ↔ VR button (guion §22.9), (3) a bug Opus could not close in two tries, (4) the last check before the freeze on Sunday. Close the Fable session when that piece is done.
+- Check Claude usage at noon and at 17:00; if Fable is above 70 % of its limit, everything goes to Opus.
+
+**Where things stand (14/11, 10:55):**
+
+1. Three local commits on `main`: the Developer Hub project, this file, and the scene built by code with its automatic test (32 checks of 32, three screenshots). Branches `model`, `docs` and `web` exist locally at commit 2.
+2. **The first push was started at 10:49 and was still hanging at 10:52** (the venue network took 18 s just to open a connection to github.com). Run `git status -sb` and `git branch -a -v` first: if `origin/main` is missing, push again (`git push -u origin main model docs web`); if it hangs for more than 3 minutes, use the phone's hotspot.
+3. **Next piece: "Gale terrain and layers"** (guion §3, pieces 1 and 2; hand-off at H1 13:00). Replace `TestTerrain` with a loader for `Assets/StreamingAssets/Site/` (contract in guion §22.7: `site.json`, `heightmap.r16` 513 × 513 little-endian, first row north, sampled down to 257 × 257 nodes) and paint three layers from the heights: height, slope (blue / orange / vermilion, hatched over 20°) and return on foot (needs C's `ReturnMap`; until it lands, a stand-in marked TODO). While B's package has not arrived, keep the synthetic terrain and its "not Mars data" label; when it arrives, the label goes and the legend names mission, instrument and resolution from `site.json` → `sources`. Extend `AutoTest` with the new checks and screenshots.
+4. Unity closed by itself at 10:42 with a GPU error (`d3d12: device removed`, 887a0005) right after importing scripts. Not caused by the code. If it repeats, tell Daniel and start Unity with `-force-d3d11`.
+5. Still unseen in the Quest: the scene (passthrough, table, panel text over the room). Daniel builds it; read `adb logcat` yourself.
+
+**Pushes and commits (Daniel, 14/11 10:48: "automatizá hasta los push y commits"):** session A commits and pushes `main` by itself after each piece that passes the automatic test. This replaces "only Daniel pushes" for session A's own work. Still ask Daniel before: force-pushing, deleting branches, merging `model`, `docs` or `web` into `main`, making the repository public, tagging the release.
+
+**Git hook:** Daniel's global git config has a `commit-msg` hook that strips AI attribution. It is switched off in this repository only (`git config --local hook.strip-ai-attribution.enabled false`, with Daniel's yes at 10:35) because rule 3 requires the `Co-Authored-By` line. A fresh clone on this laptop needs the same line. After each commit, check with `git log -1 --format=%(trailers)`.
+
 ## Read before writing anything
 
 1. The handoff, from its first line: `C:\Users\kevin\Segundo_Cerebro\31_CARRERA\04_EVENTOS\SPACE-APPS-2026\space-apps-2026-traspaso.md`
@@ -24,7 +44,7 @@ Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submi
 
 | Session | Model · machine | Owns |
 |---|---|---|
-| A · the app | Fable 5.2 · Daniel's laptop | `Assets/` except B's and C's folders · `CLAUDE.md` |
+| A · the app | Opus 5.5 by default, Fable 5.2 for the pieces listed above · Daniel's laptop | `Assets/` except B's and C's folders · `CLAUDE.md` |
 | B · the data | Opus 5.5 · Daniel's laptop | `data-pipeline/` · `DATA.md` · `Assets/StreamingAssets/Site/` · `Assets/Walkback/Models3D/` |
 | C · the model and the pitch | Fable 5.2 · Orlando's laptop | `Assets/Walkback/Model/` · `model-tests/` · `docs/` · `pitch/` · `video/` · `README.md` · `AI_USAGE.md` |
 | D · the web | Claude Code · Josué's laptop | `web/` · `.github/workflows/pages.yml` |
@@ -33,7 +53,7 @@ The data contract (`site.json`, `heightmap.r16`, `stops.json`…), the model int
 
 ## Team
 
-- **Daniel**: directs, compiles, tests in the headset, presents. **Only Daniel pushes.**
+- **Daniel**: directs, compiles, tests in the headset, presents. Session A pushes its own pieces to `main` (delegated by Daniel, see the top); every other push is Daniel's.
 - **Orlando**: runs session C. When Daniel is away he approves Claude's permissions: yes to reading, compiling and testing inside the project; ask Daniel before deleting, pushing, installing or touching anything outside it. Handles the headset in the live demo.
 - **Miranda**: the five-person tests (Sun 8:30) and photos.
 - **Josué**: the web page (session D). His working doc: https://claude.ai/artifact/72XQbTwu35auhjCZe3MBbu
