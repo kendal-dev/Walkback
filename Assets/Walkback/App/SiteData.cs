@@ -45,6 +45,36 @@ namespace Walkback
         public string credit;
     }
 
+    /// <summary>stops.json: one stop of the mission (data contract, guion §22.7). x, y in local meters.</summary>
+    [Serializable]
+    public class StopInfo
+    {
+        public string id;
+        public string name;
+        public float x;
+        public float y;
+        /// <summary>Under 20 words, in English.</summary>
+        public string science;
+        public StopTask[] tasks;
+        public string risk;
+        public string photoCredit;
+        /// <summary>Panorama id: the photo is StreamingAssets/Site/panorama_[id].jpg (may be empty).</summary>
+        public string panorama;
+    }
+
+    [Serializable]
+    public class StopTask
+    {
+        public string name;
+        public float minutes;
+    }
+
+    [Serializable]
+    class StopList
+    {
+        public StopInfo[] stops;
+    }
+
     /// <summary>
     /// The square kilometer the app works on: heights on the 257 x 257 grid (row 0 = north,
     /// x east, y north, meters from the south-west corner) plus where they come from.
@@ -62,6 +92,10 @@ namespace Walkback
         public bool IsMarsData;
         /// <summary>Why the real package was not used (empty when it was).</summary>
         public string FallbackReason = "";
+        /// <summary>The stops of the mission, from stops.json, or two TEST STOPs while it is missing.</summary>
+        public StopInfo[] Stops = new StopInfo[0];
+        /// <summary>False while the stops are the labelled test stand-ins.</summary>
+        public bool StopsAreReal;
 
         public float NodeSpacing { get { return SideMeters / (GridSize - 1); } }
         public Vector2 Habitat { get { return Info != null && Info.habitat != null ? new Vector2(Info.habitat.x, Info.habitat.y) : new Vector2(SideMeters / 2f, SideMeters / 2f); } }
@@ -109,23 +143,74 @@ namespace Walkback
 
         public static SiteData Load()
         {
-            string why;
+            SiteData data = null;
+            string why = "";
             try
             {
                 byte[] json = ReadStreamingAsset(SiteFolder + "/site.json");
                 byte[] r16 = json != null ? ReadStreamingAsset(SiteFolder + "/heightmap.r16") : null;
                 if (json == null) why = "no site.json in StreamingAssets/Site yet";
                 else if (r16 == null) why = "site.json found but heightmap.r16 is missing";
-                else return FromPackage(System.Text.Encoding.UTF8.GetString(json), r16);
+                else data = FromPackage(System.Text.Encoding.UTF8.GetString(json), r16);
             }
             catch (Exception e)
             {
                 why = "the site package could not be read: " + e.Message;
             }
-            WalkbackLog.Warn("Using the synthetic test terrain: " + why);
-            var data = Synthetic();
-            data.FallbackReason = why;
+            if (data == null)
+            {
+                WalkbackLog.Warn("Using the synthetic test terrain: " + why);
+                data = Synthetic();
+                data.FallbackReason = why;
+            }
+            LoadStops(data);
             return data;
+        }
+
+        /// <summary>Reads stops.json (a JSON list, or {"stops": [...]}); without it, two labelled TEST STOPs.</summary>
+        public static void LoadStops(SiteData data)
+        {
+            try
+            {
+                byte[] bytes = ReadStreamingAsset(SiteFolder + "/stops.json");
+                if (bytes != null)
+                {
+                    data.Stops = ParseStops(System.Text.Encoding.UTF8.GetString(bytes));
+                    data.StopsAreReal = data.Stops.Length > 0;
+                    if (data.StopsAreReal)
+                    {
+                        WalkbackLog.Info("Stops loaded: " + data.Stops.Length);
+                        return;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                WalkbackLog.Warn("stops.json could not be read: " + e.Message);
+            }
+            data.Stops = TestStops();
+            data.StopsAreReal = false;
+        }
+
+        public static StopInfo[] ParseStops(string json)
+        {
+            json = json.Trim();
+            if (json.StartsWith("[")) json = "{\"stops\":" + json + "}";
+            json = Regex.Replace(json, "\"(id|panorama)\"\\s*:\\s*(-?[0-9][0-9.eE+-]*)", "\"$1\": \"$2\"");
+            var list = JsonUtility.FromJson<StopList>(json);
+            return list != null && list.stops != null ? list.stops : new StopInfo[0];
+        }
+
+        /// <summary>TODO(H1): stand-ins until session B's stops.json lands. Not real places; the name says so.</summary>
+        public static StopInfo[] TestStops()
+        {
+            return new[]
+            {
+                new StopInfo { id = "test1", name = "TEST STOP 1", x = 720f, y = 760f, science = "Test stop on the synthetic terrain, not a real place.",
+                    tasks = new[] { new StopTask { name = "Test task", minutes = 20f } }, risk = "", photoCredit = "", panorama = "" },
+                new StopInfo { id = "test2", name = "TEST STOP 2", x = 430f, y = 180f, science = "Test stop on the synthetic terrain, not a real place.",
+                    tasks = new[] { new StopTask { name = "Test task", minutes = 15f } }, risk = "", photoCredit = "", panorama = "" },
+            };
         }
 
         /// <summary>Builds the site from the two files of the contract. Throws if they break it.</summary>
@@ -251,8 +336,11 @@ namespace Walkback
             return h;
         }
 
-        /// <summary>StreamingAssets is inside the APK on the Quest: read it with a web request there.</summary>
-        static byte[] ReadStreamingAsset(string relative)
+        /// <summary>
+        /// Bytes of a file under StreamingAssets (e.g. "Site/panorama_88.jpg"), or null if it is not there.
+        /// StreamingAssets is inside the APK on the Quest: read with a web request there.
+        /// </summary>
+        public static byte[] ReadStreamingAsset(string relative)
         {
             string path = Application.streamingAssetsPath + "/" + relative;
             if (path.Contains("://"))

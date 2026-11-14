@@ -17,7 +17,7 @@ namespace Walkback.EditorTools
     ///   3. Unity open:    create the file Temp/walkback-run-test (the editor picks it up by itself)
     /// </summary>
     [InitializeOnLoad]
-    public static class AutoTest
+    public static partial class AutoTest
     {
         const string OutputFolder = "TestOutput";
         const string TriggerFile = "Temp/walkback-run-test";
@@ -25,6 +25,18 @@ namespace Walkback.EditorTools
         static readonly List<string> lines = new List<string>();
         static int passed, failed;
         static double nextTriggerCheck;
+        static bool refreshedForTrigger;
+
+        // Each piece adds its checks and screenshots from its own file (AutoTest.<Piece>.cs).
+        // Screenshots of a piece are named "<piece>_NN_<what>.png". An unimplemented hook compiles to nothing.
+        static partial void CheckRoute(WalkbackApp app);
+        static partial void CheckPanelPiece(WalkbackApp app);
+        static partial void CheckGlobe(WalkbackApp app);
+        static partial void CheckPointer(WalkbackApp app);
+        static partial void ShotsRoute(WalkbackApp app);
+        static partial void ShotsPanelPiece(WalkbackApp app);
+        static partial void ShotsGlobe(WalkbackApp app);
+        static partial void ShotsPointer(WalkbackApp app);
 
         static AutoTest()
         {
@@ -35,10 +47,32 @@ namespace Walkback.EditorTools
         {
             if (EditorApplication.timeSinceStartup < nextTriggerCheck) return;
             nextTriggerCheck = EditorApplication.timeSinceStartup + 1.0;
-            if (!File.Exists(TriggerFile)) return;
+            if (!File.Exists(TriggerFile)) { refreshedForTrigger = false; return; }
+            // Import and compile what changed first; otherwise the test can run the old scripts.
+            if (!refreshedForTrigger)
+            {
+                refreshedForTrigger = true;
+                AssetDatabase.Refresh();
+                return;
+            }
             if (EditorApplication.isCompiling || EditorApplication.isUpdating || EditorApplication.isPlayingOrWillChangePlaymode) return;
             File.Delete(TriggerFile);
+            refreshedForTrigger = false;
             Run();
+        }
+
+        /// <summary>Runs one piece's checks; an exception fails that piece only.</summary>
+        static void Guard(string piece, Action action)
+        {
+            try { action(); }
+            catch (Exception e) { Check(piece + ": no exception", false, e.GetType().Name + ": " + e.Message + " @ " + FirstFrame(e)); }
+        }
+
+        static string FirstFrame(Exception e)
+        {
+            string trace = e.StackTrace ?? "";
+            int end = trace.IndexOf('\n');
+            return (end > 0 ? trace.Substring(0, end) : trace).Trim();
         }
 
         public static void RunBatch()
@@ -60,11 +94,20 @@ namespace Walkback.EditorTools
             Directory.CreateDirectory(OutputFolder);
             string reportPath = Path.Combine(OutputFolder, "report.txt");
             var started = DateTime.Now;
+            Check("Scripts compile (if not, this report tests the old scripts)", !EditorUtility.scriptCompilationFailed);
             try
             {
                 WalkbackApp app = SceneBuilder.Build();
                 CheckScene(app);
+                Guard("Route", () => CheckRoute(app));
+                Guard("Panel", () => CheckPanelPiece(app));
+                Guard("Globe", () => CheckGlobe(app));
+                Guard("Pointer", () => CheckPointer(app));
                 Screenshots(app);
+                Guard("Route shots", () => ShotsRoute(app));
+                Guard("Panel shots", () => ShotsPanelPiece(app));
+                Guard("Globe shots", () => ShotsGlobe(app));
+                Guard("Pointer shots", () => ShotsPointer(app));
             }
             catch (Exception e)
             {

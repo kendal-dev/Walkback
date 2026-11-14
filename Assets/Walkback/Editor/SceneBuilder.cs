@@ -11,8 +11,15 @@ namespace Walkback.EditorTools
     /// map, mission panel and desktop camera. Nobody clicks anything in Unity.
     /// Menu: Walkback > Build Scene.
     /// </summary>
-    public static class SceneBuilder
+    public static partial class SceneBuilder
     {
+        // Each piece adds its own objects from its own file (SceneBuilder.<Piece>.cs), so pieces
+        // written in parallel never edit this file. An unimplemented hook compiles to nothing.
+        static partial void BuildRoute(WalkbackApp app);
+        static partial void BuildPanelPiece(WalkbackApp app);
+        static partial void BuildGlobe(WalkbackApp app);
+        static partial void BuildPointer(WalkbackApp app);
+
         public const string ScenePath = "Assets/Walkback/Scenes/Walkback.unity";
         public const string MaterialFolder = "Assets/Walkback/Materials";
         public const string RigPrefabPath = "Packages/com.meta.xr.sdk.core/Prefabs/OVRCameraRig.prefab";
@@ -130,13 +137,19 @@ namespace Walkback.EditorTools
             app.panel = panel;
             app.terrain = terrainObject.GetComponent<GaleTerrain>();
 
+            BuildRoute(app);
+            BuildPanelPiece(app);
+            BuildGlobe(app);
+            BuildPointer(app);   // last: it looks for every pointer target the others made
+
             EditorSceneManager.SaveScene(scene, ScenePath);
             EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
             AssetDatabase.SaveAssets();
             return app;
         }
 
-        static Material MakeMaterial(string name, string shaderName, Color color, float smoothness)
+        /// <summary>Creates or updates Assets/Walkback/Materials/[name].mat. Pieces use it for their own materials.</summary>
+        public static Material MakeMaterial(string name, string shaderName, Color color, float smoothness)
         {
             string path = MaterialFolder + "/" + name + ".mat";
             var shader = Shader.Find(shaderName);

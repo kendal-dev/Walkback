@@ -10,8 +10,19 @@ namespace Walkback
     /// Entry point. In the headset: Meta camera rig with passthrough.
     /// Without a headset (Play in the editor): a desktop camera looks at the table.
     /// </summary>
-    public class WalkbackApp : MonoBehaviour
+    public partial class WalkbackApp : MonoBehaviour
     {
+        // Each piece keeps its fields and per-frame work in its own file (WalkbackApp.<Piece>.cs).
+        // Start hooks run after the mode (headset or desktop) is known. Unimplemented hooks compile to nothing.
+        partial void StartRoute();
+        partial void StartPanelPiece();
+        partial void StartGlobe();
+        partial void StartPointer();
+        partial void UpdateRoute();
+        partial void UpdatePanelPiece();
+        partial void UpdateGlobe();
+        partial void UpdatePointer();
+
         public GameObject cameraRig;
         public Camera desktopCamera;
         public Transform table;
@@ -40,6 +51,7 @@ namespace Walkback
             if (terrain != null) terrain.LayerChanged -= OnLayerChanged;
         }
 
+        bool started;
         float fpsWindowStart;
         int fpsFrames;
         float fpsWorst = float.MaxValue;
@@ -65,6 +77,11 @@ namespace Walkback
             WalkbackLog.Info(DesktopMode
                 ? "Mode: desktop (no headset found)"
                 : "Mode: headset " + XRSettings.loadedDeviceName);
+            StartRoute();
+            StartPanelPiece();
+            StartGlobe();
+            StartPointer();
+            started = true;
             fpsWindowStart = Time.realtimeSinceStartup;
         }
 
@@ -77,6 +94,14 @@ namespace Walkback
                 if (keyboard.digit1Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Height);
                 if (keyboard.digit2Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Slope);
                 if (keyboard.digit3Key.wasPressedThisFrame) terrain.ShowLayer(MapLayer.Return);
+            }
+
+            if (started)
+            {
+                UpdatePointer();
+                UpdateGlobe();
+                UpdateRoute();
+                UpdatePanelPiece();
             }
 
             fpsFrames++;
