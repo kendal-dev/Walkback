@@ -23,6 +23,13 @@ Deadlines: code freeze Sun 15/11 10:00 · submit 11:00 · the venue closes submi
 7. Unity closed by itself at 10:42 with a GPU error (`d3d12: device removed`, 887a0005) right after importing scripts. Not caused by the code. If it repeats, tell Daniel and start Unity with `-force-d3d11`. It did not repeat at 11:09–11:12.
 8. Still unseen in the Quest: the scene and the three layers (passthrough, table, panel text over the room). Daniel builds it; read `adb logcat` yourself. Also unseen by Daniel: the seven screenshots in `TestOutput/`.
 
+**Parallel burst (Daniel, 14/11 11:20: "abrí aunque sea 3 agentes que cada uno toque partes diferentes"), started 11:35:**
+
+- Session B (data) runs as its own session in this folder (it had not started before). It commits only its own paths and never pushes.
+- Four background agents of session A write one piece each, only in their own files: **panel** (`MissionPanel.cs`, `Panel*.cs`, `Conditions.cs`), **route view and pillars** (`Route*.cs`, `StopPillars.cs`, `Pillar*.cs`), **pointer and table** (`Pointer*.cs` except `PointerTarget.cs`, `TableControls.cs`), **globe and jump** (`Globe*.cs`, `SiteJump*.cs`); plus each one's `WalkbackApp.<Piece>.cs`, `SceneBuilder.<Piece>.cs` and `AutoTest.<Piece>.cs`. They do not commit; session A reviews, tests and commits each piece.
+- Shared files stay with session A: `WalkbackApp.cs` (hooks, `SelectStop`, `RequestJump`, `MapControlsLocked`), `SceneBuilder.cs`, `AutoTest.cs` (partial classes with one hook per piece), `SiteData.cs` (site, stops), `PointerTarget.cs` (`IPointerTarget`), `GaleTerrain.cs`, `TerrainLayers.cs`, `WalkbackTheme.cs`, `Tools/`.
+- **Running the test while several agents share Unity:** `powershell -NoProfile -ExecutionPolicy Bypass -File Tools/run-autotest.ps1` takes a lock in `Temp/`, gives Unity focus, prints compile errors and the report. The report's first check says whether the scripts compiled; if not, it tested the old scripts.
+
 **Pushes and commits (Daniel, 14/11 10:48: "automatizá hasta los push y commits"):** session A commits and pushes `main` by itself after each piece that passes the automatic test. This replaces "only Daniel pushes" for session A's own work. Still ask Daniel before: force-pushing, deleting branches, merging `model`, `docs` or `web` into `main`, making the repository public, tagging the release.
 
 **Git hook:** Daniel's global git config has a `commit-msg` hook that strips AI attribution. It is switched off in this repository only (`git config --local hook.strip-ai-attribution.enabled false`, with Daniel's yes at 10:35) because rule 3 requires the `Co-Authored-By` line. A fresh clone on this laptop needs the same line. After each commit, check with `git log -1 --format=%(trailers)`.
