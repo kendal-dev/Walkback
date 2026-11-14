@@ -4,7 +4,10 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Walkback/Scenes/Walkback.unity
+    guid: 505db295b4f07cf4bb54f80e7cfdc657
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 350099d6d2a2c0c4691bdb360642f72c, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: a5a078baee1c07c4ca6f382189d693c8, type: 2}

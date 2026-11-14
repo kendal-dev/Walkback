@@ -48,6 +48,9 @@ crashlytics-build.properties
 /data-pipeline/raw/
 /data-pipeline/tmp/
 
+# Automatic test output (report and screenshots)
+/TestOutput/
+
 # Model test build output
 /model-tests/bin/
 /model-tests/obj/

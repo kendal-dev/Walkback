@@ -55,13 +55,15 @@ Unity **6000.4.6f1** (the 2022.3 also installed is not used) · Meta XR SDK **20
 
 | Piece | Written | Compiles | Passes the test without headset | Seen in the Quest |
 |---|---|---|---|---|
-| Scene built by code + automatic test | ⬜ | ⬜ | ⬜ | ⬜ |
+| Scene built by code + automatic test | ✅ | ✅ | ✅ 10:46, 32 checks | ⬜ |
 | Gale terrain and layers (height, slope, return) | ⬜ | ⬜ | ⬜ | ⬜ |
 | Route, return map, stops and pillars (with C's model) | ⬜ | ⬜ | ⬜ | ⬜ |
 | Panel: verdict, legend, conditions, stop cards | ⬜ | ⬜ | ⬜ | ⬜ |
 | Pointer, table, globe and jump | ⬜ | ⬜ | ⬜ | ⬜ |
 | Helmet HUD | ⬜ | ⬜ | ⬜ | ⬜ |
 | Mission mode + MR ↔ VR button | ⬜ | ⬜ | ⬜ | ⬜ |
+
+**The test without the headset** (`Assets/Walkback/Editor/AutoTest.cs`; report and screenshots in `TestOutput/`, not committed; ~50 s): Unity closed → `Unity.exe -batchmode -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log` · Unity open → menu *Walkback > Run Auto Test*, or create the file `Temp/walkback-run-test` and the editor runs it by itself once its window has had focus. The scene is rebuilt by `Walkback > Build Scene` (`SceneBuilder.cs`): never edit `Walkback.unity` by hand. The terrain on the table is still `TestTerrain` (synthetic, labelled on the panel as not Mars data) until B's site package arrives.
 
 A piece is done when it compiles, passes the automatic test without the headset (with screenshots) and Daniel has seen it, in a screenshot or in the headset (guion §24).
 
