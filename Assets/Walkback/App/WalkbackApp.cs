@@ -1,4 +1,5 @@
 // Written with Claude Code (AI), directed and tested by team MARSXR
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -31,6 +32,31 @@ namespace Walkback
         public GaleTerrain terrain;
 
         public bool DesktopMode { get; private set; }
+
+        // ---- Shared between pieces: who raises and who listens ----
+
+        /// <summary>True while something animates the map (the globe opening): table controls must not move it (trap 17).</summary>
+        public bool MapControlsLocked;
+
+        /// <summary>The stop chosen on the map or the panel (index into terrain.Site.Stops), or -1.</summary>
+        public int SelectedStop { get; private set; } = -1;
+        /// <summary>Raised by SelectStop (pillars, panel). The panel shows that stop's card.</summary>
+        public event Action<int> StopSelected;
+        /// <summary>Raised by RequestJump (the panel's jump button). The site jump shows that stop's panorama.</summary>
+        public event Action<int> JumpRequested;
+
+        public void SelectStop(int index)
+        {
+            SelectedStop = index;
+            WalkbackLog.Info("Stop selected: " + index);
+            if (StopSelected != null) StopSelected(index);
+        }
+
+        public void RequestJump(int index)
+        {
+            WalkbackLog.Info("Jump requested: stop " + index);
+            if (JumpRequested != null) JumpRequested(index);
+        }
 
         /// <summary>Writes the site line and the legend of the current layer on the panel.</summary>
         public void RefreshPanel()
