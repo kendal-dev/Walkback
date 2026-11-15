@@ -94,6 +94,8 @@ This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) w
 
 ## The web page
 
+https://walkback-swart.vercel.app/
+
 `walkback-web/web/` is a static page for the jury and anyone without a headset: it opens in a phone or laptop browser and works offline (three.js and the fonts are copied in `vendor/`, nothing is loaded from the internet).
 
 <p align="center">
