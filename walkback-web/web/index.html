@@ -7,24 +7,56 @@
   <title>Walkback · The safest way to go far.</title>
   <meta name="description" content="Walkback tells an astronaut on Mars, at every step, whether they can still make it back to the habitat. Explore 1 km² of Gale Crater in 3D.">
   <meta name="theme-color" content="#06060b">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23e8673c'/%3E%3C/svg%3E">
-  <link rel="preload" href="vendor/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" sizes="64x64" href="brand/favicon-64.png">
+  <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
+  <link rel="preload" href="vendor/fonts/satoshi-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="style.css?v=20261115k">
+  <script src="intro.js?v=20261115k"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
   </script>
-  <script src="sky.js" defer></script>
-  <script type="module" src="hero.js"></script>
-  <script type="module" src="app.js"></script>
+  <script src="sky.js?v=20261115k" defer></script>
+  <script type="module" src="hero.js?v=20261115k"></script>
+  <script type="module" src="app.js?v=20261115k"></script>
+  <script type="module" src="hud.js?v=20261115k"></script>
+  <script src="nav.js?v=20261115k" defer></script>
 </head>
 <body>
+  <!-- Opening animation: the visor boots and opens (style.css; intro.js only skips it). Decoration only. -->
+  <div class="intro" aria-hidden="true">
+    <div class="intro-core">
+      <div class="intro-seal">
+        <span class="intro-ring"></span>
+        <span class="intro-arc"></span>
+        <img class="intro-logo" src="brand/walkback-logo-480.png" width="180" height="180" alt="">
+      </div>
+      <ul class="intro-lines">
+        <li>Gale crater · 4.807° S · 137.381° E</li>
+        <li>Loading terrain</li>
+        <li>Loading the way back</li>
+        <li class="intro-ok">Ready to walk</li>
+      </ul>
+      <div class="intro-bar"><span></span></div>
+    </div>
+    <span class="intro-seam"></span>
+    <p class="intro-hint"><span class="hint-fine">Click or press any key to skip</span><span class="hint-touch">Tap to skip</span></p>
+  </div>
+
   <header class="nav">
-    <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>Walkback</a>
-    <nav class="nav-links" aria-label="Sections">
-      <a href="#map">Map</a>
+    <a class="brand" href="#top"><img class="brand-logo" src="brand/logo-96.png" width="40" height="40" alt="">Walkback</a>
+    <!-- nav.js marks the section on screen (aria-current) and turns this into a menu on phones. -->
+    <nav class="nav-links" id="nav-links" aria-label="Sections">
+      <a href="#problem">Problem</a>
+      <a href="#map">Live map</a>
       <a href="#how">How it works</a>
-      <a href="#get">Video</a>
+      <a href="#pipeline">Science</a>
+      <a href="#get">Headset</a>
+      <a href="#faq">FAQ</a>
     </nav>
+    <a class="nav-cta" href="#map">Explore Gale</a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+      <span class="nav-toggle-bars" aria-hidden="true"></span>
+    </button>
   </header>
 
   <main>
@@ -32,35 +64,87 @@
     <section class="hero" id="top">
       <div class="hero-copy">
         <p class="eyebrow">NASA Space Apps 2026 · Team MARSXR</p>
-        <h1>The safest way<br>to go far.</h1>
+        <!-- hud.js mirrors the live map's verdict here; it never invents numbers. -->
+        <p id="hud-chip" class="hud-chip" data-state="pending" role="status">Checking return path…</p>
+        <h1>The safest way<br><span class="h1-accent">to go far.</span></h1>
         <p class="lead">Walkback tells an astronaut on Mars, at every step, whether they can still make it back to the habitat.</p>
         <div class="cta">
           <a class="btn" href="#map">Explore Gale Crater</a>
-          <a class="btn btn-ghost" href="#gale-zoom">Watch the Gale zoom</a>
+          <a class="btn btn-ghost" href="https://youtu.be/3ttjGnluXzw" target="_blank" rel="noopener">▶ Watch the video</a>
         </div>
       </div>
       <!-- hero.js mounts the Mars globe (data/mars.glb) here; the CSS planet is the fallback. -->
-      <div class="hero-stage" id="hero-stage" aria-hidden="true">
-        <div class="orbit"></div>
-        <div class="planet"></div>
+      <div class="hero-stage" id="hero-stage">
+        <!-- A small rocket rides the orbit; it turns with it, so its nose always points along the path. -->
+        <div class="orbit" aria-hidden="true">
+          <span class="orbit-rocket">
+            <!-- Fallback drawing (hero.js replaces it with the 3D rocket). width/height keep it small even before style.css loads. -->
+            <svg viewBox="0 0 24 40" width="22" height="36" focusable="false">
+              <defs>
+                <linearGradient id="rocket-flame" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#fff3c4"/>
+                  <stop offset=".45" stop-color="#ffb60b"/>
+                  <stop offset="1" stop-color="#e8673c" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="rocket-hull" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#8f8a84"/>
+                  <stop offset=".35" stop-color="#ffffff"/>
+                  <stop offset=".7" stop-color="#d8d2ca"/>
+                  <stop offset="1" stop-color="#7d7771"/>
+                </linearGradient>
+                <linearGradient id="rocket-paint" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stop-color="#9c3a1b"/>
+                  <stop offset=".4" stop-color="#ff8a5c"/>
+                  <stop offset="1" stop-color="#8a3216"/>
+                </linearGradient>
+              </defs>
+              <path class="rocket-flame" d="M8.6 29 Q12 43 15.4 29 Z" fill="url(#rocket-flame)"/>
+              <path d="M8 18 L3.5 23.5 L3.5 30 L8 27.5 Z" fill="url(#rocket-paint)"/>
+              <path d="M16 18 L20.5 23.5 L20.5 30 L16 27.5 Z" fill="url(#rocket-paint)"/>
+              <path d="M12 1 C17.2 6 17.6 15 16 28.5 L8 28.5 C6.4 15 6.8 6 12 1 Z" fill="url(#rocket-hull)"/>
+              <path d="M12 1 C14.3 3.2 15.5 5.7 16.1 8.2 L7.9 8.2 C8.5 5.7 9.7 3.2 12 1 Z" fill="url(#rocket-paint)"/>
+              <circle cx="12" cy="14.5" r="2.7" fill="#47d1ff" stroke="#1b222a" stroke-width="1.1"/>
+              <path d="M9.6 28.5 L14.4 28.5 L13.5 30.6 L10.5 30.6 Z" fill="#8a8f96"/>
+            </svg>
+          </span>
+        </div>
+        <div class="planet" aria-hidden="true"></div>
+        <!-- Zoom to Gale (hero.js, all in 3D): HUD reticle and the crater's name over the dive. -->
+        <div class="gale-hud" id="gale-hud" aria-hidden="true">
+          <span class="gale-reticle"></span>
+          <p class="gale-label" id="gale-label"><b>Gale crater</b><span>5.4° S · 137.8° E · Curiosity's home</span></p>
+        </div>
+        <button class="gale-btn" id="gale-btn" type="button" hidden>Zoom to Gale</button>
       </div>
     </section>
 
-    <!-- Gale Crater visualization added by Codex (AI), directed and tested by team MARSXR. -->
-    <section class="section gale-zoom" id="gale-zoom" aria-labelledby="gale-zoom-title">
-      <div>
-        <h2 id="gale-zoom-title">From Mars to Gale Crater</h2>
-        <p class="sub" id="gale-zoom-description">Mars fills the frame as the view descends from orbit to the rocky floor of Gale Crater.</p>
-        <p class="gale-zoom-credit">NASA/Goddard Space Flight Center Scientific Visualization Studio</p>
+    <!-- 2. The problem: why a walk on Mars is not a straight line -->
+    <section class="section" id="problem">
+      <div class="section-head">
+        <p class="eyebrow">The problem</p>
+        <h2>On Mars, the hard part is the way back</h2>
+        <p class="sub">Three reasons a walk out from the habitat is never a straight line.</p>
       </div>
-      <video controls playsinline preload="none" width="640" height="480"
-             poster="data/gale-crater-zoom.jpg" src="data/gale-crater-zoom.mp4"
-             aria-labelledby="gale-zoom-title" aria-describedby="gale-zoom-description">
-        <a href="data/gale-crater-zoom.mp4">Download the Gale Crater video</a>
-      </video>
+      <div class="problem-grid">
+        <article class="problem-card">
+          <p class="problem-stat"><b>3–22</b> min</p>
+          <h3>No GPS, no rescue</h3>
+          <p>Mars has no navigation satellites, and a message to Earth takes 3 to 22 minutes to arrive. The crew has to know on its own whether it can still get home.</p>
+        </article>
+        <article class="problem-card">
+          <p class="problem-stat"><b>19%</b> over 20°</p>
+          <h3>Hidden terrain cost</h3>
+          <p>500 m on a flat map can be a dead end. Walkback treats slopes over 20° as no-go, and in our square kilometre of Gale, 19% of the ground is that steep.</p>
+        </article>
+        <article class="problem-card">
+          <p class="problem-stat"><b>1</b> tank</p>
+          <h3>Fixed oxygen budget</h3>
+          <p>Apollo crews driving the lunar rover kept a walkback limit: never farther from the lander than their suits could walk them back. Walkback recalculates that limit at every step, from the slope and the effort of walking.</p>
+        </article>
+      </div>
     </section>
 
-    <!-- 2. Interactive map -->
+    <!-- 3. Interactive map -->
     <section class="section" id="map">
       <div class="section-head">
         <p class="eyebrow">Live map</p>
@@ -70,8 +154,19 @@
 
       <div class="map-grid">
         <div class="map-col">
+          <!-- The headset's MAP LAYER buttons; app.js paints each layer and writes its key. -->
+          <div class="layer-bar" id="layer-bar" role="group" aria-label="Map layer">
+            <span class="layer-bar-label">Map layer</span>
+            <button type="button" data-layer="height" aria-pressed="false">Height</button>
+            <button type="button" data-layer="slope" aria-pressed="true">Slope</button>
+            <button type="button" data-layer="return" aria-pressed="false">Return on foot</button>
+          </div>
+          <p class="layer-key" id="layer-key" aria-live="polite"><b>SLOPE</b> <span class="k-low">under 10°</span> · <span class="k-mid">10–20° with care</span> · <span class="k-high">over 20° no-go, hatched</span></p>
           <div id="viewer" class="viewer">
             <div id="loading" class="loading">Loading terrain…</div>
+            <!-- Helmet-display frame: decoration only, never takes clicks. -->
+            <span class="hud-corners" aria-hidden="true"></span>
+            <div class="hud-strip" aria-hidden="true"><span>Gale Crater · 1 km²</span><span class="hud-live">Live</span></div>
             <span id="test-badge" class="test-badge" hidden>Test data</span>
             <div id="hint" class="hint">Drag to turn · Ctrl + scroll to zoom · <b>Click the ground</b></div>
             <div id="tap-card" class="tap-card" role="status" aria-live="polite" hidden>
@@ -84,13 +179,27 @@
             <li><span class="sw sw-habitat"></span>Habitat</li>
             <li><span class="sw sw-stop"></span>Stop</li>
             <li><span class="sw sw-route"></span>Safe route</li>
-            <li><span class="sw sw-steep"></span>Over 20°</li>
             <li id="legend-pnr" hidden><span class="sw sw-pnr"></span>No return</li>
+            <li id="legend-whatif" hidden><span class="sw sw-whatif"></span>Out of reach</li>
             <li class="legend-note" id="legend-vex">Heights ×2</li>
           </ul>
+          <!-- app.js shows this once the return map and the tank size are loaded. -->
+          <div id="whatif" class="whatif" role="group" aria-labelledby="whatif-label" hidden>
+            <p class="whatif-label" id="whatif-label">What if the tank ran low?</p>
+            <div class="whatif-buttons">
+              <button type="button" data-o2="100" aria-pressed="true">As planned</button>
+              <button type="button" data-o2="15" aria-pressed="false">15% left</button>
+              <button type="button" data-o2="8" aria-pressed="false">8% left</button>
+            </div>
+            <p class="whatif-note" id="whatif-note" aria-live="polite">As planned: the panel shows the whole walk with a full tank.</p>
+          </div>
         </div>
 
         <aside class="panel" aria-label="Route verdict">
+          <div class="panel-head" aria-hidden="true">
+            <p class="panel-brand">Walkback</p>
+            <p class="panel-tagline">The safest way to go far.</p>
+          </div>
           <div id="verdict" class="verdict verdict-pending">
             <p class="panel-label">Verdict</p>
             <p class="verdict-word">Waiting for route</p>
@@ -98,12 +207,67 @@
             <div class="kpis" id="kpis" hidden>
               <div><span class="kpi" id="st-min">–</span><span class="kpi-label">walk</span></div>
               <div><span class="kpi" id="st-o2">–</span><span class="kpi-label" id="st-o2-label">O₂ left at home</span></div>
+              <div class="o2-bar" id="o2-bar" aria-hidden="true" hidden><span></span></div>
             </div>
           </div>
           <p class="panel-label">Route</p>
           <ol id="steps" class="steps"></ol>
         </aside>
       </div>
+    </section>
+
+    <!-- The mission plan in the app today (README of the repository, 15 Nov 2026). Every number is an ESTIMATE. -->
+    <section class="section" id="plan">
+      <div class="section-head">
+        <p class="eyebrow">The mission plan</p>
+        <h2>Four real Curiosity drill sites, one walk</h2>
+        <p class="sub">The app plans habitat → four stops → habitat over the real relief and checks the oxygen at every stop.</p>
+      </div>
+      <p class="estimate-pill">Estimate · plan B over the relief, not the team's walking model yet</p>
+      <div class="plan-kpis">
+        <div class="plan-kpi"><b>1.8 km</b><span>route (1812 m)</span></div>
+        <div class="plan-kpi"><b>43 min</b><span>walking</span></div>
+        <div class="plan-kpi"><b>2 h 12 min</b><span>work at the stops</span></div>
+        <div class="plan-kpi"><b>2 h 55 min</b><span>total</span></div>
+        <div class="plan-kpi"><b>36%</b><span>of the tank (181 L of O₂)</span></div>
+        <div class="plan-kpi plan-kpi-ok"><b>285 L</b><span>spare above the reserve</span></div>
+      </div>
+      <ol class="stop-list">
+        <li class="stop-card">
+          <span class="stop-n">1</span>
+          <div>
+            <h3>Altadena</h3>
+            <p class="stop-tag">Curiosity drilled here · Jun 2025 · 200 m from the habitat</p>
+            <p>Curiosity's 43rd drill hole, in the boxwork bedrock: its powder went to the CheMin and SAM labs.</p>
+          </div>
+        </li>
+        <li class="stop-card">
+          <span class="stop-n">2</span>
+          <div>
+            <h3>Valle de la Luna</h3>
+            <p class="stop-tag">Curiosity drilled here · Oct 2025</p>
+            <p>Curiosity's 44th drill hole, in the Monte Grande hollow: is the hollow rock different from the ridges?</p>
+          </div>
+        </li>
+        <li class="stop-card">
+          <span class="stop-n">3</span>
+          <div>
+            <h3>Nevado Sajama</h3>
+            <p class="stop-tag">Curiosity drilled here · Nov 2025 · 360° photo</p>
+            <p>Drilled on a boxwork ridge top, 10 m from Valle de la Luna: ridge rock versus hollow rock.</p>
+          </div>
+        </li>
+        <li class="stop-card">
+          <span class="stop-n">4</span>
+          <div>
+            <h3>Campo Marte</h3>
+            <p class="stop-tag">Curiosity drilled here · May 2026 · 716 m away, 77 m higher</p>
+            <p>Drill hole in the layered sulfate unit just above the boxwork; ChemCam and APXS measured it first.</p>
+          </div>
+        </li>
+      </ol>
+      <p class="plan-whatif"><b>What if the tank ran low?</b> With 15% of the tank the verdict turns NOT VIABLE; with 8%, the app paints red 57.5% of the ground that still has a way back on foot.</p>
+      <p class="plan-note">Stops, science and dates: NASA's Curiosity blog, at the rover's own positions. The map above still runs on test data; the headset app uses this plan.</p>
     </section>
 
     <!-- 3. How it works -->
@@ -132,26 +296,188 @@
       <p class="quest">Meta Quest 3 stands in for the helmet display.</p>
     </section>
 
-    <!-- 4. Video and APK -->
+    <!-- 5. Science and model pipeline: from orbital data to litres of oxygen -->
+    <section class="section" id="pipeline">
+      <div class="section-head">
+        <p class="eyebrow">Science &amp; model</p>
+        <h2>From orbit to litres of oxygen</h2>
+        <p class="sub">Open NASA data in, one decision out. Everything is worked out ahead of time, so the headset needs no signal.</p>
+      </div>
+      <ol class="flow">
+        <li class="flow-step">
+          <img class="flow-img" src="media/flow-orbital.jpg" width="640" height="400" alt="HiRISE orbital photo of the Gale crater square, in grey, with layered ridges and hollows." loading="lazy">
+          <span class="flow-n">01</span>
+          <h3>Orbital data</h3>
+          <p>HiRISE heights at 1 m and a 25 cm photo of 1 km² of Gale crater, plus Curiosity's real drive positions.</p>
+          <p class="flow-tag">MRO HiRISE · USGS · NASA/JPL</p>
+        </li>
+        <li class="flow-step">
+          <img class="flow-img" src="media/flow-slope.jpg" width="640" height="400" alt="The app's slope layer: blue under 10 degrees, orange 10 to 20, hatched over 20." loading="lazy">
+          <span class="flow-n">02</span>
+          <h3>Slope &amp; traversability</h3>
+          <p>Slope from the heights, cell by cell. Over 20° is no-go: the hatched zones on the map's SLOPE layer. Checked against Curiosity's own tilt sensor: 2.0° mean difference over 85 positions.</p>
+          <p class="flow-tag">Over 20° · no-go</p>
+        </li>
+        <li class="flow-step">
+          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="The app's return layer: rings of equal walking time back to the habitat." loading="lazy">
+          <span class="flow-n">03</span>
+          <h3>257 × 257 return grid</h3>
+          <p>For each of 66,049 cells, 3.9 m apart: the minutes and the litres of oxygen it takes to walk back to the habitat.</p>
+          <p class="flow-tag">return_map.bin · 516 KB · offline</p>
+        </li>
+        <li class="flow-step">
+          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="The route from the habitat to Nevado Sajama drawn over the relief, with contour lines." loading="lazy">
+          <span class="flow-n">04</span>
+          <h3>A verdict on every step</h3>
+          <p>The headset reads the cell under the astronaut's feet and warns before the point of no return, with no network.</p>
+          <p class="flow-tag">Viable · Point of no return</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- 6. What the astronaut sees: app screens, Enter VR, video and APK -->
     <section class="section get" id="get">
       <div class="section-head">
         <p class="eyebrow">In the headset</p>
-        <h2>See Walkback in mixed reality</h2>
+        <h2>What the astronaut sees</h2>
+        <p class="sub">Screens from the Meta Quest 3 app: the same verdict, in front of the astronaut.</p>
       </div>
+      <div class="gallery">
+        <figure class="shot">
+          <a href="media/headset-viable.jpg" target="_blank" rel="noopener"><img src="media/headset-viable.jpg" width="900" height="430" alt="Headset panel showing the verdict VIABLE in green, with oxygen used and the margin to return." loading="lazy"></a>
+          <figcaption><span class="shot-tag shot-ok">Viable</span>The whole walk fits, with oxygen to spare.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="media/headset-not-viable.jpg" target="_blank" rel="noopener"><img src="media/headset-not-viable.jpg" width="900" height="430" alt="Headset panel showing the verdict NOT VIABLE in red, with the point of no return before the second stop." loading="lazy"></a>
+          <figcaption><span class="shot-tag shot-bad">Not viable</span>The point of no return comes before the last stop.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="media/headset-globe.jpg" target="_blank" rel="noopener"><img src="media/headset-globe.jpg" width="1200" height="675" alt="The app's opening: a Mars globe with a light on Gale crater and the label Gale crater boxwork." loading="lazy"></a>
+          <figcaption><span class="shot-tag">Landing</span>It opens on Mars: point at the light on Gale to land.</figcaption>
+        </figure>
+        <figure class="shot">
+          <a href="media/headset-route.jpg" target="_blank" rel="noopener"><img src="media/headset-route.jpg" width="1200" height="676" alt="The relief of Gale crater with contour lines, the habitat and the route to the Nevado Sajama stop." loading="lazy"></a>
+          <figcaption><span class="shot-tag">Route</span>The route over the real relief, seen from the habitat.</figcaption>
+        </figure>
+        <figure class="shot shot-wide">
+          <a href="media/sajama-360.jpg" target="_blank" rel="noopener"><img src="media/sajama-360.jpg" width="1600" height="505" alt="Curiosity's Mastcam panorama at Nevado Sajama: layered rock and sand on the slopes of Mount Sharp." loading="lazy"></a>
+          <figcaption><span class="shot-tag">Jump to site</span>At a stop, the astronaut stands inside Curiosity's 360° photo of it. Nevado Sajama, Mastcam mosaic PIA26696 (NASA/JPL-Caltech/MSSS).</figcaption>
+        </figure>
+      </div>
+      <p class="shot-note">App screens from an earlier build (14 Nov), captured by its automatic test in the Unity editor; the numbers on them are test values, as the screens themselves say. The panorama is NASA's real Mastcam photo.</p>
+
+      <!-- Two phases and what was seen in the headset: the repository's README, 15 Nov 2026. -->
+      <div class="phases">
+        <article class="phase">
+          <p class="phase-n">Phase 1 · Plan</p>
+          <h3>At the table, in mixed reality</h3>
+          <p>The square kilometre of Gale sits on a table in the room. Four layers (photo, height, slope, return), the route through the four stops, the verdict with its oxygen, time and height charts, and the WHAT IF.</p>
+        </article>
+        <article class="phase">
+          <p class="phase-n">Phase 2 · Explore</p>
+          <h3>On the terrain, at real scale</h3>
+          <p>START MISSION puts the astronaut on Mars at 1:1: the route on the ground, a pillar at each stop and a visor with compass, an arrow to the next stop, the oxygen bar with its reserve, and the minutes back in green, amber or red.</p>
+        </article>
+      </div>
+
+      <div class="tested">
+        <h3>Seen running on a Meta Quest 3 · 15 Nov 2026</h3>
+        <ul class="tested-list">
+          <li class="ok">Gale terrain and the four layers, at 72 fps</li>
+          <li class="ok">Pointer, table, globe and the jump into the 360° photo</li>
+          <li class="ok">Verdict board, charts and START MISSION</li>
+          <li class="ok">Mission mode: Mars at 1:1, 72 fps, room view and back to the table</li>
+          <li class="ok">Space weather read live from NASA DONKI at start</li>
+          <li class="todo">Not yet in the headset: jumps between stops, the arrival card, TURN BACK NOW, and the WHAT IF in this build</li>
+        </ul>
+        <p class="tested-note">The app's own automatic test: 424 of 424 checks passing, without the headset.</p>
+      </div>
+
+      <div class="xr-box">
+        <div>
+          <h3>Have a Meta Quest?</h3>
+          <p>Open this page in the headset's browser and press <b>Enter VR</b> to stand at the habitat, in Gale crater, at real scale.</p>
+        </div>
+        <!-- app.js puts the Enter VR button here (xr.js). -->
+        <div id="xr-slot" class="xr-slot"></div>
+      </div>
+
       <div class="links">
-        <!-- TODO (Sunday 10:00): real 30 s video link; then remove "is-todo" and aria-disabled. -->
-        <a class="btn btn-big is-todo" id="link-video" aria-disabled="true">▶ 30 s video<small>Coming Sunday</small></a>
-        <!-- TODO (Sunday 10:00): real APK link; then remove "is-todo" and aria-disabled. -->
-        <a class="btn btn-big btn-ghost is-todo" id="link-apk" aria-disabled="true">⬇ Quest 3 APK<small>Coming Sunday</small></a>
+        <a class="btn btn-big" id="link-video" href="https://youtu.be/3ttjGnluXzw" target="_blank" rel="noopener">▶ Watch the demo<small>WALKBACK by MARSXR · YouTube</small></a>
+        <a class="btn btn-big btn-ghost" id="link-apk" href="https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission" target="_blank" rel="noopener">⬇ Quest 3 APK<small>Release v1.0-submission · GitHub</small></a>
+      </div>
+    </section>
+
+    <!-- 5. Frequently asked questions (native <details>: works without JavaScript and with the keyboard) -->
+    <section class="section" id="faq">
+      <div class="section-head">
+        <p class="eyebrow">FAQ</p>
+        <h2>Questions we get asked</h2>
+      </div>
+      <div class="faq">
+        <details class="faq-item" open>
+          <summary>How is it different from Mars Trek?</summary>
+          <p>Mars Trek shows whole regions. Walkback zooms down to the scale of a walk, adds the route and gives a recommendation.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why virtual reality and not a tablet?</summary>
+          <p>Because you understand relief by moving through it, and the crew can rehearse the walk before heading out. The same data can later go to a tablet or to the helmet display.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Is there GPS on Mars?</summary>
+          <p>No. Rovers find where they are with cameras and motion sensors, corrected with HiRISE photos taken from orbit. The Quest headset tracks itself the same way, with its own cameras.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What does “live” mean?</summary>
+          <p>The calculation runs in the headset, with no signal: the minutes back to the habitat come from the map stored in the app. The weather is Curiosity's latest report, stored with its date; only the week's space-weather line can be read live from NASA DONKI when the headset has internet.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Are these numbers final?</summary>
+          <p>No. Every mission number is an estimate and says ESTIMATE on screen: the app uses a stand-in plan over the relief until the team's walking and oxygen model is in. The terrain itself is checked: its slopes match Curiosity's own tilt sensor within 2.0° on average.</p>
+        </details>
       </div>
     </section>
   </main>
 
   <footer class="foot" id="credits">
-    <h2 class="foot-title">Credits</h2>
-    <ul id="credits-list" class="credit-list"><li class="muted">Loading…</li></ul>
-    <p class="foot-line">three.js (MIT) · Inter typeface (SIL OFL)</p>
-    <p class="foot-line">Team MARSXR · NASA Space Apps Challenge 2026 · Santa Cruz</p>
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <img class="foot-logo" src="brand/walkback-logo-480.png" width="132" height="132" alt="Walkback">
+        <p class="foot-tagline">The safest way to go far.</p>
+        <!-- Centre of the 1 km² site (site.json of the Gale package). -->
+        <p class="foot-coords"><span>Gale crater, Mars</span><span>4.807° S · 137.381° E</span></p>
+      </div>
+
+      <nav class="foot-col" aria-label="Footer">
+        <h2 class="foot-title">Explore</h2>
+        <ul class="foot-links">
+          <li><a href="#problem">The problem</a></li>
+          <li><a href="#map">Live map</a></li>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#pipeline">Science &amp; model</a></li>
+          <li><a href="#get">In the headset</a></li>
+          <li><a href="#plan">Mission plan</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="https://github.com/kendal-dev/Walkback" rel="noopener">Source on GitHub</a></li>
+        </ul>
+        <img class="foot-qr" src="media/qr-github.png" width="96" height="96" alt="QR code to github.com/kendal-dev/Walkback">
+      </nav>
+
+      <div class="foot-col foot-data">
+        <h2 class="foot-title">Data credits</h2>
+        <!-- app.js fills this from data/site.json "sources". -->
+        <ul id="credits-list" class="credit-list"><li class="muted">Loading…</li></ul>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <div class="foot-meta">
+        <p>Team MARSXR · NASA Space Apps Challenge 2026 · Santa Cruz, Bolivia</p>
+        <p>NASA does not endorse this project. No NASA logo or insignia is used.</p>
+        <p>three.js (MIT) · Satoshi (ITF FFL) · Inter (SIL OFL) · Page written with Claude Code (AI), directed and tested by the team</p>
+      </div>
+      <a class="foot-up" href="#top">Back to top <span aria-hidden="true">↑</span></a>
+    </div>
   </footer>
 </body>
 </html>

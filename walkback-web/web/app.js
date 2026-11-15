@@ -3,11 +3,16 @@
 // Walkback web viewer. Reads web/data/ (copied from session B and C outputs by
 // tools/build_data.mjs) and draws the 1 km² site. It never computes routes or
 // return times itself: those numbers come from session C's model, the same one
-// the headset uses. Only the >20° slope hatching is derived here, from heights.
+// the headset uses. Derived here, for display only: the HEIGHT contours and the SLOPE
+// layer (from the heights), the RETURN ON FOOT rings (from the model's minutes),
+// and the "what if the tank ran low" overlay, which compares the model's litres
+// in return_map.bin with a smaller tank (the same check as the headset's WHAT IF).
 
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/OrbitControls.js";
 import { CSS2DRenderer, CSS2DObject } from "three/addons/CSS2DRenderer.js";
+import { setupXR } from "./xr.js";
+import { addCuriosity, pickTraversePoint } from "./curiosity.js";
 
 const STEEP_DEG = 20;
 const VEX = 2; // vertical exaggeration, display only (slopes use real heights)
@@ -68,7 +73,7 @@ function normalizeRoute(r) {
 
 // ---------------------------------------------------------------------------
 async function main() {
-  const [site, hmBuf, stops, routeRaw, retBuf, status, ortho] = await Promise.all([
+  const [site, hmBuf, stops, routeRaw, retBuf, status, ortho, traverse] = await Promise.all([
     getJSON("data/site.json"),
     getBin("data/heightmap.bin"),
     maybe(getJSON("data/stops.json")),
@@ -76,6 +81,7 @@ async function main() {
     maybe(getBin("data/return_map.bin")),
     maybe(getJSON("data/status.json")),
     loadImage("data/ortho.jpg"),
+    maybe(getJSON("data/curiosity_traverse.json")),
   ]);
 
   if (status?.test) $("test-badge").hidden = false;
@@ -160,6 +166,10 @@ async function main() {
   const sun = new THREE.DirectionalLight(0xfff0dd, 2.4);
   sun.position.set(-700, 900, 300);
   scene.add(sun);
+  // Terrain and every marker live in one group: xr.js moves and rescales it to stand
+  // the viewer at the habitat at real scale (desktop keeps it at the identity).
+  const world = new THREE.Group();
+  scene.add(world);
 
   // ---------- terrain mesh ----------
   const pos = new Float32Array(G * G * 3);
@@ -189,64 +199,165 @@ async function main() {
   geo.setIndex(new THREE.BufferAttribute(idx, 1));
   geo.computeVertexNormals();
 
-  // Texture: orthoimage (or a height tint until it arrives) + hatching over >20°.
+  // ---------- map layers (the headset's MAP LAYER buttons, same colours) ----------
+  // HEIGHT: the orthophoto when there is one, else a sand tint with contour lines.
+  // SLOPE: under 10° blue, 10–20° orange, over 20° hatched as no-go (from the heights).
+  // RETURN ON FOOT: the model's minutes back to the habitat (return_map.bin), with rings.
+  const ret = retBuf && retBuf.byteLength === G * G * 8 ? new Float32Array(retBuf) : null;
   const T = Math.min(window.innerWidth > 700 ? 2048 : 1024, renderer.capabilities.maxTextureSize);
-  const tex = document.createElement("canvas");
-  tex.width = tex.height = T;
-  const tx = tex.getContext("2d");
-  if (ortho) {
-    tx.drawImage(ortho, 0, 0, T, T);
-  } else {
-    const tint = document.createElement("canvas");
-    tint.width = tint.height = G;
-    const ti = tint.getContext("2d").createImageData(G, G);
-    const lo = [122, 62, 36], hi = [214, 146, 96];
-    for (let i = 0; i < G * G; i++) {
-      const t = (gh[i] - minE) / (maxE - minE || 1);
-      for (let ch = 0; ch < 3; ch++) ti.data[i * 4 + ch] = lo[ch] + (hi[ch] - lo[ch]) * t;
-      ti.data[i * 4 + 3] = 255;
-    }
-    tint.getContext("2d").putImageData(ti, 0, 0);
-    tx.imageSmoothingEnabled = true;
-    tx.drawImage(tint, 0, 0, T, T);
-  }
-  {
-    const mask = document.createElement("canvas");
-    mask.width = mask.height = G;
-    const mi = mask.getContext("2d").createImageData(G, G);
-    for (let i = 0; i < G * G; i++) mi.data[i * 4 + 3] = slope[i] > STEEP_DEG ? 255 : 0;
-    mask.getContext("2d").putImageData(mi, 0, 0);
+  const C = Math.min(T, 1024); // resolution of the per-pixel paints (contours, rings)
+  const APP = {
+    sandLo: [168, 116, 72], sandHi: [226, 190, 140],
+    slopeLow: [88, 184, 232], slopeMid: [216, 152, 24],
+    hatch: "rgba(120, 52, 16, 0.95)",
+    nearHome: [96, 176, 128], farHome: [36, 84, 84], noWay: [44, 46, 52],
+  };
+  const lerp3 = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+  const niceStep = (raw, steps) => steps.find((s) => s >= raw) ?? steps[steps.length - 1];
 
-    const st = document.createElement("canvas");
-    st.width = st.height = T;
-    const sx = st.getContext("2d");
-    sx.fillStyle = "rgba(40, 14, 0, 0.45)";
-    sx.fillRect(0, 0, T, T);
-    sx.strokeStyle = "rgba(255, 204, 66, 0.95)";
-    sx.lineWidth = T / 260;
-    const gap = T / 110;
-    sx.beginPath();
-    for (let i = -T; i < T * 2; i += gap) { sx.moveTo(i, 0); sx.lineTo(i - T, T); }
-    sx.stroke();
-    sx.globalCompositeOperation = "destination-in";
-    sx.imageSmoothingEnabled = true;
-    sx.drawImage(mask, 0, 0, T, T);
-    tx.drawImage(st, 0, 0);
+  // Bilinear value of a G x G grid (row 0 north) under pixel (px, py) of an n x n paint.
+  const bilinear = (grid, px, py, n) => {
+    const fc = (px / (n - 1)) * (G - 1), fr = (py / (n - 1)) * (G - 1);
+    const c0 = Math.floor(fc), r0 = Math.floor(fr);
+    const c1 = Math.min(c0 + 1, G - 1), r1 = Math.min(r0 + 1, G - 1);
+    const tc = fc - c0, tr = fr - r0;
+    return (grid[r0 * G + c0] * (1 - tc) + grid[r0 * G + c1] * tc) * (1 - tr)
+      + (grid[r1 * G + c0] * (1 - tc) + grid[r1 * G + c1] * tc) * tr;
+  };
+  // Paints an n x n canvas pixel by pixel: rgbAt(px, py) -> [r, g, b].
+  const paint = (n, rgbAt) => {
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = n;
+    const ctx = cv.getContext("2d");
+    const img = ctx.createImageData(n, n);
+    for (let py = 0; py < n; py++) {
+      for (let px = 0; px < n; px++) {
+        const c = rgbAt(px, py), o = (py * n + px) * 4;
+        img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    return cv;
+  };
+  // Pixel is on a line when its band differs from the pixel to the left or above.
+  const banded = (n, valueAt, step) => {
+    const band = new Float64Array(n * n);
+    for (let py = 0; py < n; py++) for (let px = 0; px < n; px++) band[py * n + px] = Math.floor(valueAt(px, py) / step);
+    return (px, py) => {
+      const b = band[py * n + px];
+      return (px > 0 && band[py * n + px - 1] !== b) || (py > 0 && band[(py - 1) * n + px] !== b);
+    };
+  };
+  const toTexture = (cv) => {
+    const t = new THREE.CanvasTexture(cv);
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  };
+
+  const contourStep = niceStep((maxE - minE) / 12, [1, 2, 5, 10, 20, 25, 50, 100]);
+  const retMin = ret ? new Float32Array(G * G) : null;
+  let retMax = 0;
+  if (ret) {
+    for (let i = 0; i < G * G; i++) {
+      const m = ret[i * 2];
+      const ok = Number.isFinite(m) && m >= 0 && m < 1e6;
+      retMin[i] = ok ? m : NaN;
+      if (ok && m > retMax) retMax = m;
+    }
   }
-  const map = new THREE.CanvasTexture(tex);
-  map.colorSpace = THREE.SRGBColorSpace;
-  map.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  const terrain = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map }));
-  scene.add(terrain);
+  const ringStep = niceStep(retMax / 10, [1, 2, 5, 10, 15, 20, 30, 60]);
+
+  const painters = {
+    height() {
+      if (ortho) {
+        const cv = document.createElement("canvas");
+        cv.width = cv.height = T;
+        cv.getContext("2d").drawImage(ortho, 0, 0, T, T);
+        return cv;
+      }
+      const hAt = (px, py) => bilinear(gh, px, py, C);
+      const onLine = banded(C, hAt, contourStep);
+      return paint(C, (px, py) => {
+        const c = lerp3(APP.sandLo, APP.sandHi, (hAt(px, py) - minE) / (maxE - minE || 1));
+        return onLine(px, py) ? [c[0] * 0.45, c[1] * 0.42, c[2] * 0.4] : c;
+      });
+    },
+    slope() {
+      const base = paint(C, (px, py) => (bilinear(slope, px, py, C) < 10 ? APP.slopeLow : APP.slopeMid));
+      const mask = document.createElement("canvas");
+      mask.width = mask.height = C;
+      const mx = mask.getContext("2d");
+      const md = mx.createImageData(C, C);
+      for (let py = 0; py < C; py++) for (let px = 0; px < C; px++) md.data[(py * C + px) * 4 + 3] = bilinear(slope, px, py, C) > STEEP_DEG ? 255 : 0;
+      mx.putImageData(md, 0, 0);
+
+      const cv = document.createElement("canvas");
+      cv.width = cv.height = T;
+      const cx = cv.getContext("2d");
+      cx.drawImage(base, 0, 0, T, T);
+      const st = document.createElement("canvas");
+      st.width = st.height = T;
+      const sx = st.getContext("2d");
+      sx.strokeStyle = APP.hatch;
+      sx.lineWidth = T / 220;
+      sx.beginPath();
+      for (let i = -T; i < T * 2; i += T / 90) { sx.moveTo(i, 0); sx.lineTo(i - T, T); }
+      sx.stroke();
+      sx.globalCompositeOperation = "destination-in";
+      sx.drawImage(mask, 0, 0, T, T);
+      cx.drawImage(st, 0, 0);
+      return cv;
+    },
+    return() {
+      const mAt = (px, py) => bilinear(retMin, px, py, C);
+      const onRing = banded(C, (px, py) => { const m = mAt(px, py); return Number.isFinite(m) ? m : -1; }, ringStep);
+      return paint(C, (px, py) => {
+        const m = mAt(px, py);
+        if (!Number.isFinite(m)) return APP.noWay;
+        if (onRing(px, py)) return [236, 244, 240];
+        return lerp3(APP.nearHome, APP.farHome, Math.min(m / (retMax || 1), 1));
+      });
+    },
+  };
+  const textures = {};
+  const layerTexture = (name) => (textures[name] ??= toTexture(painters[name]()));
+
+  const terrain = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ map: layerTexture("slope") }));
+  world.add(terrain);
+
+  // Layer buttons and the one-line key under them, worded like the headset's legend.
+  {
+    const KEYS = {
+      height: ortho
+        ? "<b>PHOTO</b> orbital photo of the square, draped on the relief"
+        : `<b>HEIGHT</b> <i class="k-sand"></i> low to high · a contour line every ${contourStep} m`,
+      slope: '<b>SLOPE</b> <span class="k-low">under 10°</span> · <span class="k-mid">10–20° with care</span> · <span class="k-high">over 20° no-go, hatched</span>',
+      return: `<b>RETURN ON FOOT</b> <i class="k-return"></i> minutes back to the habitat · a ring every ${ringStep} min · <span class="k-noway">dark: no way back</span>`,
+    };
+    const bar = $("layer-bar");
+    const key = $("layer-key");
+    const buttons = [...bar.querySelectorAll("button[data-layer]")];
+    if (ortho) bar.querySelector('[data-layer="height"]').textContent = "Photo";
+    const returnBtn = bar.querySelector('[data-layer="return"]');
+    if (!ret) { returnBtn.disabled = true; returnBtn.title = "The way-back map is not loaded yet"; }
+    const show = (name) => {
+      terrain.material.map = layerTexture(name);
+      for (const b of buttons) b.setAttribute("aria-pressed", String(b.dataset.layer === name));
+      key.innerHTML = KEYS[name];
+    };
+    for (const b of buttons) b.addEventListener("click", () => { if (!b.disabled) show(b.dataset.layer); });
+    show("slope");
+  }
 
   // Dark base under the tile so it reads as a block of ground.
   {
     const base = new THREE.Mesh(
       new THREE.BoxGeometry(S, 24, S),
-      new THREE.MeshLambertMaterial({ color: 0x2a1a12 }),
+      new THREE.MeshLambertMaterial({ color: 0x24272c }),
     );
     base.position.y = -12.5;
-    scene.add(base);
+    world.add(base);
   }
 
   function label(text, cls, obj, y) {
@@ -267,12 +378,16 @@ async function main() {
       new THREE.MeshLambertMaterial({ color: 0xf4f1ec }),
     );
     g.add(dome);
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(22, 2, 8, 48), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(22, 2, 8, 48), new THREE.MeshBasicMaterial({ color: 0x3fda65 }));
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 1;
     g.add(ring);
-    label("Habitat", "lbl-habitat", g, 26);
-    scene.add(g);
+    // The headset marks the habitat with a green pillar.
+    const pillar = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 62, 12), new THREE.MeshLambertMaterial({ color: 0x36c35a, emissive: 0x0d3a18 }));
+    pillar.position.y = 31;
+    g.add(pillar);
+    label("Habitat", "lbl-habitat", g, 70);
+    world.add(g);
   }
 
   // ---------- science stops ----------
@@ -283,14 +398,15 @@ async function main() {
     stopById.set(String(s.id), s);
     const g = new THREE.Group();
     g.position.copy(toWorld(x, y));
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 34, 8), new THREE.MeshLambertMaterial({ color: 0xe9e2da }));
-    pole.position.y = 17;
+    // Stops are amber pillars, as in the headset.
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 40, 10), new THREE.MeshLambertMaterial({ color: 0xffb60b, emissive: 0x3a2600 }));
+    pole.position.y = 20;
     g.add(pole);
-    const head = new THREE.Mesh(new THREE.SphereGeometry(8, 20, 12), new THREE.MeshLambertMaterial({ color: 0xffb13b, emissive: 0x4a2a00 }));
-    head.position.y = 36;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(6, 20, 12), new THREE.MeshLambertMaterial({ color: 0xffb60b, emissive: 0x4a3000 }));
+    head.position.y = 42;
     g.add(head);
-    label(s.name ? `${s.id} · ${s.name}` : String(s.id), "lbl-stop", g, 46);
-    scene.add(g);
+    label(s.name ? `${s.id} · ${s.name}` : String(s.id), "lbl-stop", g, 54);
+    world.add(g);
   }
 
   // ---------- route + verdict (numbers from session C) ----------
@@ -321,27 +437,26 @@ async function main() {
       if (pts.length < 2) return;
       const v = drape(pts);
       const curve = new THREE.CatmullRomCurve3(v, false, "centripetal");
-      scene.add(new THREE.Mesh(
+      world.add(new THREE.Mesh(
         new THREE.TubeGeometry(curve, Math.min(v.length * 2, 4000), 2.4, 8, false),
         new THREE.MeshBasicMaterial({ color }),
       ));
     };
-    tube(route.points.slice(0, split + 1), 0x47d1ff);
-    if (route.pnr) tube(route.points.slice(split), 0xff5a52);
+    tube(route.points.slice(0, split + 1), 0xffb60b); // the headset's amber route
+    if (route.pnr) tube(route.points.slice(split), 0xf23829);
   }
   if (route?.pnr) {
     $("legend-pnr").hidden = false;
     const g = new THREE.Group();
     g.position.copy(toWorld(route.pnr.x, route.pnr.y));
-    const m = new THREE.Mesh(new THREE.SphereGeometry(9, 20, 12), new THREE.MeshBasicMaterial({ color: 0xff5a52 }));
+    const m = new THREE.Mesh(new THREE.SphereGeometry(9, 20, 12), new THREE.MeshBasicMaterial({ color: 0xf23829 }));
     m.position.y = 10;
     g.add(m);
     label("Point of no return", "lbl-pnr", g, 24);
-    scene.add(g);
+    world.add(g);
   }
 
   // ---------- tap: minutes and % O2 to get home (session C return map) ----------
-  const ret = retBuf && retBuf.byteLength === G * G * 8 ? new Float32Array(retBuf) : null;
   const capacity = route?.capacity ?? null;
   const tapMarker = new THREE.Group();
   {
@@ -354,10 +469,76 @@ async function main() {
     disc.position.y = 1.5;
     tapMarker.add(pin, ball, disc);
     tapMarker.visible = false;
-    scene.add(tapMarker);
+    world.add(tapMarker);
+  }
+
+  // ---------- what if the tank ran low (the headset's WHAT IF) ----------
+  // Red where the litres the model says it takes to walk back are more than a smaller
+  // tank still holds, or where there is no way back at all. Nothing is recomputed.
+  let budget = null; // { pct, liters } while a what-if is on
+  let lastTap = null;
+  if (ret && capacity) {
+    const mask = document.createElement("canvas");
+    mask.width = mask.height = G;
+    const mx = mask.getContext("2d");
+    const md = mx.createImageData(G, G);
+    const big = document.createElement("canvas");
+    big.width = big.height = 1024;
+    const bx = big.getContext("2d");
+    const overlayTex = new THREE.CanvasTexture(big);
+    overlayTex.colorSpace = THREE.SRGBColorSpace;
+    const overlay = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+      map: overlayTex, transparent: true, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    }));
+    overlay.visible = false;
+    overlay.renderOrder = 1;
+    world.add(overlay);
+
+    // Paints the mask for a tank holding `liters`; returns the share of the square in red.
+    const paint = (liters) => {
+      let red = 0;
+      for (let i = 0; i < G * G; i++) {
+        const m = ret[i * 2], l = ret[i * 2 + 1];
+        const noWay = !(Number.isFinite(m) && m >= 0 && m < 1e6);
+        const out = noWay || (Number.isFinite(l) && l > liters);
+        if (out) red++;
+        md.data[i * 4] = 255; md.data[i * 4 + 1] = 64; md.data[i * 4 + 2] = 56;
+        md.data[i * 4 + 3] = out ? 160 : 0;
+      }
+      mx.putImageData(md, 0, 0);
+      bx.clearRect(0, 0, big.width, big.height);
+      bx.imageSmoothingEnabled = true;
+      bx.drawImage(mask, 0, 0, big.width, big.height);
+      overlayTex.needsUpdate = true;
+      return red / (G * G);
+    };
+
+    const box = $("whatif");
+    const buttons = [...box.querySelectorAll("button[data-o2]")];
+    const note = $("whatif-note");
+    const choose = (btn) => {
+      const pct = Number(btn.dataset.o2);
+      for (const b of buttons) b.setAttribute("aria-pressed", String(b === btn));
+      if (!(pct < 100)) {
+        budget = null;
+        overlay.visible = false;
+        note.textContent = "As planned: the panel shows the whole walk with a full tank.";
+      } else {
+        budget = { pct, liters: (capacity * pct) / 100 };
+        const share = paint(budget.liters);
+        overlay.visible = true;
+        note.textContent = `With ${pct}% of the tank left (${Math.round(budget.liters)} L), red is ground you could no longer walk back from: ${Math.round(share * 100)}% of the square.`;
+      }
+      $("legend-whatif").hidden = !overlay.visible;
+      if (tapMarker.visible && lastTap) showTap(lastTap.x, lastTap.y);
+    };
+    for (const b of buttons) b.addEventListener("click", () => choose(b));
+    box.hidden = false;
   }
 
   function showTap(x, y) {
+    lastTap = { x, y };
     tapMarker.position.copy(toWorld(x, y));
     tapMarker.visible = true;
     const body = $("tap-body");
@@ -385,6 +566,9 @@ async function main() {
           nums.append(b);
         }
         body.append(nums);
+        if (budget && Number.isFinite(liters) && liters > budget.liters) {
+          body.append(el("p", "tap-bad", `With ${budget.pct}% left, you could not walk back from here`));
+        }
         if (!capacity && Number.isFinite(liters)) body.append(el("p", "tap-sub", `${liters.toFixed(1)} L of oxygen`));
         body.append(slopeLine);
       }
@@ -438,11 +622,28 @@ async function main() {
   new ResizeObserver(frame).observe(viewer);
 
   renderer.setAnimationLoop(() => {
-    controls.update();
+    // In the headset the viewer's own pose drives the camera; HTML labels can't be seen there.
+    const inVR = renderer.xr.isPresenting;
+    if (!inVR) controls.update();
     renderer.render(scene, camera);
-    labels.render(scene, camera);
+    if (!inVR) labels.render(scene, camera);
   });
   $("loading").remove();
+
+  // Enter VR: stand at the habitat in Gale at real scale (xr.js). The button lives in
+  // the "In the headset" section; it says why when the browser has no WebXR.
+  const xrSlot = $("xr-slot");
+  if (xrSlot) {
+    try {
+      setupXR({ renderer, scene, camera, world, habitat: hab, stops, toWorld, vex: VEX, container: xrSlot });
+    } catch (err) {
+      console.warn("VR setup failed.", err);
+    }
+  }
+
+  // Curiosity at one of its real positions inside the square (session B's traverse), if present.
+  const roverAt = traverse ? pickTraversePoint(traverse, S) : null;
+  if (roverAt) addCuriosity(world, toWorld, { x: roverAt.x, y: roverAt.y, vex: VEX });
 
   renderCredits(site.sources);
 }

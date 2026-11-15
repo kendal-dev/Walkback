@@ -1,6 +1,25 @@
-# Walkback
+<p align="center">
+  <img src="walkback-web/readme/landing-hero.jpg" alt="The Walkback web page: Mars turning, a small rocket on its orbit, and the line The safest way to go far." width="100%">
+</p>
 
-**The safest way to go far.**
+<h1 align="center">Walkback</h1>
+
+<p align="center"><b>The safest way to go far.</b></p>
+
+<p align="center">
+  <a href="https://youtu.be/3ttjGnluXzw"><b>▶ Watch the demo</b></a> ·
+  <a href="https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission"><b>⬇ Quest 3 APK (v1.0-submission)</b></a> ·
+  <a href="#the-web-page"><b>🌐 The web page</b></a> ·
+  <a href="DATA.md"><b>📡 Data</b></a>
+</p>
+
+<p align="center">
+  <img alt="NASA Space Apps Challenge 2026" src="https://img.shields.io/badge/NASA%20Space%20Apps%20Challenge-2026-e8673c">
+  <img alt="Meta Quest 3" src="https://img.shields.io/badge/Meta%20Quest-3-47d1ff">
+  <img alt="Unity 6000.4.6f1" src="https://img.shields.io/badge/Unity-6000.4.6f1-222222">
+  <img alt="Automatic test 424 of 424" src="https://img.shields.io/badge/automatic%20test-424%2F424-3fda65">
+  <img alt="License Apache 2.0" src="https://img.shields.io/badge/license-Apache%202.0-blue">
+</p>
 
 Walkback is a mixed-reality prototype for Meta Quest 3 that tells an astronaut on Mars, at every step, whether they can still make it back to the habitat. Meta Quest 3 stands in for the helmet display.
 
@@ -10,6 +29,19 @@ Built by team MARSXR for the NASA International Space Apps Challenge 2026, Santa
 > Built with AI assistance (Claude Code): see [AI_USAGE.md](AI_USAGE.md).
 
 ---
+
+## Demo video
+
+[![WALKBACK by MARSXR: the demo video on YouTube](https://img.youtube.com/vi/3ttjGnluXzw/maxresdefault.jpg)](https://youtu.be/3ttjGnluXzw)
+
+*WALKBACK by MARSXR* on YouTube: [youtu.be/3ttjGnluXzw](https://youtu.be/3ttjGnluXzw)
+
+---
+
+## Two phases: plan, then explore
+
+1. **Plan, at the table (mixed reality).** A square kilometre of Gale crater sits on a table in the room. The astronaut reads the ground with four layers, sees the route through four real Curiosity drill sites, and gets a verdict with its oxygen, time and height charts. The WHAT IF re-plans with less oxygen in the tank.
+2. **Explore, on the terrain (Mars at 1:1).** START MISSION puts the astronaut on the same terrain at real scale, with the route on the ground, a pillar at each stop and a helmet visor that keeps the way back in view.
 
 ## What the app does today
 
@@ -60,6 +92,35 @@ This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) w
 
 ---
 
+## The web page
+
+`walkback-web/web/` is a static page for the jury and anyone without a headset: it opens in a phone or laptop browser and works offline (three.js and the fonts are copied in `vendor/`, nothing is loaded from the internet).
+
+<p align="center">
+  <img src="walkback-web/readme/landing-live-map.jpg" alt="The live map: a 3D square of terrain with the SLOPE layer in blue, orange and hatched, the route to three stops, and the verdict panel saying VIABLE." width="100%">
+</p>
+
+- **Live map.** The square kilometre in 3D, with the headset's own layers and colours: HEIGHT (contour lines every 10 m), SLOPE (under 10° blue, 10–20° orange, over 20° hatched as no-go) and RETURN ON FOOT (minutes back to the habitat, a ring every few minutes). Tap the ground for the minutes and the oxygen back to the habitat; the verdict panel copies the headset's mission panel.
+- **What if the tank ran low?** The same check as the headset's WHAT IF: with 15 % or 8 % of the tank, the ground you could no longer walk back from turns red. The page compares the return map's litres with the smaller tank; it computes no route or time of its own.
+- **Zoom to Gale.** The hero's 3D Mars turns Gale crater to the front, swings below the planet and raises a pillar of light on the crater, then comes back. A small 3D rocket orbits the planet and hides behind it.
+- **Enter VR.** In the Meta Quest browser, the page stands you at the habitat in Gale at real scale (WebXR).
+- **Plus:** the mission plan with the four drill sites, how the data goes from orbit to litres of oxygen, the screens of the headset app, an FAQ, and an opening animation that can be skipped (and never plays when the system asks for less motion).
+
+<p align="center">
+  <img src="walkback-web/readme/landing-zoom-to-gale.jpg" alt="Zoom to Gale on the web page: Mars with a pillar of light on Gale crater, a reticle and the label GALE CRATER, 5.4° S, 137.8° E, Curiosity's home." width="100%">
+</p>
+
+Run it locally, and check it before publishing:
+
+```bash
+python -m http.server 8137 --directory walkback-web/web
+node walkback-web/web/tools/check_web.mjs
+```
+
+Then open http://localhost:8137. The live map runs on test terrain until `walkback-web/web/tools/build_data.mjs` copies the Gale site package into `web/data/` (it needs `git lfs pull` first); the page shows a TEST DATA badge meanwhile.
+
+---
+
 ## NASA and other data used
 
 All data in the app comes from public sources; each one is named on screen and in [NOTICE](NOTICE). Full details, commands and checks: [DATA.md](DATA.md).
@@ -96,7 +157,7 @@ How the terrain was checked: the slopes of the Mars Trek DEM differ from Curiosi
 
 ## Install on a Meta Quest 3
 
-1. Download `Walkback-v1.0-submission.apk` from the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission).
+1. Download `Walkback-v1.0-submission.apk` (128.6 MB) from the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission), published on 15 Nov 2026.
 2. Enable developer mode on the headset, connect it by USB and run `adb install -r Walkback-v1.0-submission.apk`.
 3. Open *Walkback* from *Unknown sources* in the app library.
 
@@ -134,6 +195,7 @@ The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it bui
 | `Assets/Walkback/` | The app (scripts, materials, editor tools and the automatic test) |
 | `Assets/StreamingAssets/Site/` | The Gale site package read by the app (see DATA.md) |
 | `data-pipeline/` | Scripts that build the site package from the NASA and USGS sources |
+| `walkback-web/` | The web page (`web/`), its pre-publish check (`web/tools/check_web.mjs`) and the README's screenshots (`readme/`) |
 | `DATA.md` | Data sources, build commands and checks |
 | `CLAUDE.md` | Internal working notes and instructions for the AI coding sessions |
 

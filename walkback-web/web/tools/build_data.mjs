@@ -74,6 +74,7 @@ take(siteSrc, "site.json", { required: true });
 take(join(SITE, "heightmap.r16"), "heightmap.bin", { required: true, bytes: HM * HM * 2 });
 take(join(SITE, "stops.json"), "stops.json", { required: true });
 take(join(SITE, "ortho.jpg"), "ortho.jpg", { maxMB: 5 });
+take(join(SITE, "curiosity_traverse.json"), "curiosity_traverse.json"); // [{sol, x, y}], rover positions (session B)
 take(join(MODEL, "route.json"), "route.json");
 take(join(MODEL, "return_map.bin"), "return_map.bin", { bytes: GRID * GRID * 8 });
 

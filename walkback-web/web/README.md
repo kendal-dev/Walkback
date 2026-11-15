@@ -1,7 +1,7 @@
 # Walkback web page
 
 Static page published to GitHub Pages by `.github/workflows/pages.yml` when `main` changes under `web/`.
-Works offline: three.js and Inter are copied in `vendor/`.
+Works offline: three.js, Satoshi and Inter are copied in `vendor/`.
 
 ## Update the data
 
