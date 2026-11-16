@@ -10,16 +10,16 @@
   <link rel="icon" type="image/png" sizes="64x64" href="brand/favicon-64.png">
   <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
   <link rel="preload" href="vendor/fonts/satoshi-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20261115o">
-  <script src="intro.js?v=20261115o"></script>
+  <link rel="stylesheet" href="style.css?v=20261115p">
+  <script src="intro.js?v=20261115p"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
   </script>
-  <script src="sky.js?v=20261115o" defer></script>
-  <script type="module" src="hero.js?v=20261115o"></script>
-  <script type="module" src="app.js?v=20261115o"></script>
-  <script type="module" src="hud.js?v=20261115o"></script>
-  <script src="nav.js?v=20261115o" defer></script>
+  <script src="sky.js?v=20261115p" defer></script>
+  <script type="module" src="hero.js?v=20261115p"></script>
+  <script type="module" src="app.js?v=20261115p"></script>
+  <script type="module" src="hud.js?v=20261115p"></script>
+  <script src="nav.js?v=20261115p" defer></script>
 </head>
 <body>
   <!-- Opening animation: the visor boots and opens (style.css; intro.js only skips it). Decoration only. -->
@@ -211,7 +211,7 @@
               <div class="o2-bar" id="o2-bar" aria-hidden="true" hidden><span></span></div>
             </div>
           </div>
-          <p class="panel-label">Route</p>
+          <p class="panel-label">Route<span id="steps-estimate" class="steps-estimate" hidden> · estimate</span></p>
           <ol id="steps" class="steps"></ol>
         </aside>
       </div>

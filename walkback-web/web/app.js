@@ -591,6 +591,8 @@ async function main() {
         if (!capacity && Number.isFinite(liters)) body.append(el("p", "tap-sub", `${liters.toFixed(1)} L of oxygen`));
         body.append(slopeLine);
       }
+      // The return map is the app's plan B over the relief: every number on this card is an ESTIMATE.
+      body.append(el("p", "tap-est", "Estimate · plan B over the relief"));
     }
     $("tap-card").hidden = false;
   }
@@ -680,6 +682,7 @@ function renderRoutePanel(route, stopById) {
   const last = route.points[route.points.length - 1];
   box.classList.remove("verdict-pending");
   $("verdict-estimate").hidden = !route.estimate;
+  $("steps-estimate").hidden = !route.estimate;
   if (route.viable) {
     box.classList.add("verdict-ok");
     word.textContent = "VIABLE";
