@@ -88,7 +88,7 @@ How plan B works: each leg is the fastest way over the relief (Dijkstra on the e
 | WHAT IF (tank at 15 % and 8 %) | Passes | Not yet in this build (it needs the controllers); seen on 14 Nov with an earlier build |
 | Current conditions card | Passes | Yes: the space-weather line was read from NASA DONKI at start and marked "(live)" (15 Nov, 03:28 local time) |
 
-This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) with the build of 01:37 (from commit `7addfa2`), read from the app's own log. The APK in the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission) was built later the same day, at 09:06, from commit `ee833af`: between those two commits no file under `Assets/`, `ProjectSettings/` or `Packages/` changed (only the presentation and the documentation), so it is the same app code as the build in this table. With the controllers still to try: the WHAT IF in this build, the jumps, the arrival card, RECENTER, the menu button and TURN BACK NOW.
+This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) with the build of 01:37 (from commit `7addfa2`), read from the app's own log. The APK in the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission) was built later the same morning from commit `ee833af`: between those two commits no file under `Assets/`, `ProjectSettings/` or `Packages/` changed (only the presentation and the documentation), so it is the same app code as the build in this table. With the controllers still to try: the WHAT IF in this build, the jumps, the arrival card, RECENTER, the menu button and TURN BACK NOW.
 
 ---
 
