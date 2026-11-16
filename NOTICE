@@ -341,4 +341,8 @@ Source of the Apollo walkback limit (the problem card)
   "EMU Consumables Data for Traverse Planning", p. 230: the traverse must
   allow a walkback to the lunar module after a rover failure, on the
   backpacks' (PLSS) consumables.
+  The same document, table 3.6-4 (printed p. 237), gives the contingency
+  walkback metabolic rates (1560 Btu/h for a return of up to 1 h, 1290 Btu/h
+  for longer ones, both with 20 percent uncertainty) that DATA.md compares
+  with the app's 1200 Btu/h design rate.
   https://www.apollojournals.org/alsj/a16/a16flsp.pdf
