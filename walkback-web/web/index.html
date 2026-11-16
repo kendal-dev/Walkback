@@ -10,16 +10,16 @@
   <link rel="icon" type="image/png" sizes="64x64" href="brand/favicon-64.png">
   <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
   <link rel="preload" href="vendor/fonts/satoshi-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20261115p">
-  <script src="intro.js?v=20261115p"></script>
+  <link rel="stylesheet" href="style.css?v=20261115q">
+  <script src="intro.js?v=20261115q"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
   </script>
-  <script src="sky.js?v=20261115p" defer></script>
-  <script type="module" src="hero.js?v=20261115p"></script>
-  <script type="module" src="app.js?v=20261115p"></script>
-  <script type="module" src="hud.js?v=20261115p"></script>
-  <script src="nav.js?v=20261115p" defer></script>
+  <script src="sky.js?v=20261115q" defer></script>
+  <script type="module" src="hero.js?v=20261115q"></script>
+  <script type="module" src="app.js?v=20261115q"></script>
+  <script type="module" src="hud.js?v=20261115q"></script>
+  <script src="nav.js?v=20261115q" defer></script>
 </head>
 <body>
   <!-- Opening animation: the visor boots and opens (style.css; intro.js only skips it). Decoration only. -->
@@ -112,7 +112,7 @@
         <!-- Zoom to Gale (hero.js, all in 3D): HUD reticle and the crater's name over the dive. -->
         <div class="gale-hud" id="gale-hud" aria-hidden="true">
           <span class="gale-reticle"></span>
-          <p class="gale-label" id="gale-label"><b>Gale crater</b><span>Crater centre 5.4° S · 137.8° E · Curiosity's home</span></p>
+          <p class="gale-label" id="gale-label"><b>Gale crater</b><span>Crater centre 5.4° S · 137.8° E<span class="gale-sep"> · </span><span class="gale-home">Curiosity's home</span></span></p>
         </div>
         <button class="gale-btn" id="gale-btn" type="button" hidden>Zoom to Gale</button>
       </div>
@@ -347,11 +347,11 @@
       <div class="gallery">
         <figure class="shot">
           <a href="media/headset-viable.jpg" target="_blank" rel="noopener"><img src="media/headset-viable.jpg" width="900" height="430" alt="Headset panel showing the verdict VIABLE in green, with oxygen used and the margin to return." loading="lazy"></a>
-          <figcaption><span class="shot-tag shot-ok">Viable</span>The whole walk fits, with oxygen to spare.</figcaption>
+          <figcaption><span class="shot-tag shot-ok">Viable</span>The whole walk fits, with oxygen to spare. Earlier build (14 Nov) with test values, as the screen says.</figcaption>
         </figure>
         <figure class="shot">
           <a href="media/headset-not-viable.jpg" target="_blank" rel="noopener"><img src="media/headset-not-viable.jpg" width="900" height="430" alt="Headset panel showing the verdict NOT VIABLE in red, with the point of no return before the last stop." loading="lazy"></a>
-          <figcaption><span class="shot-tag shot-bad">Not viable</span>The point of no return comes before the last stop.</figcaption>
+          <figcaption><span class="shot-tag shot-bad">Not viable</span>The point of no return comes before the last stop. Earlier build (14 Nov) with test values and two test stops, not today's four-stop route.</figcaption>
         </figure>
         <figure class="shot">
           <a href="media/headset-globe.jpg" target="_blank" rel="noopener"><img src="media/headset-globe.jpg" width="1200" height="675" alt="The app's opening: a Mars globe with a light on Gale crater and the label Gale crater boxwork." loading="lazy"></a>
