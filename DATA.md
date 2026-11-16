@@ -88,6 +88,42 @@ Both `.glb` need the glTFast package in Unity (offline kit, guion §5.5); withou
 | **Does the 1 m DEM show the boxwork hollows?** | **No.** Hollows from the DEM (more than 0.5 m below the 20 m mean) cover 3.2 % of the grid and are no darker in the photo (116.5 vs 117.8). At 1 m only 6.3 % of the dark ground in the photo is a DEM hollow (3.2 % by chance). The USGS strip does no better (r = 0.03 against the photo, Mars Trek 0.15) |
 | Unity automatic test with this package (session A's test, 11:56) | 215 of 217 (at 11:56; the whole test passed 424 of 424 on 15 Nov 01:33). Every site check passes (contract, r16, sources, panel naming mission, instrument and resolution, pillars on the ground). The two failures are session A's: the panel data line wraps out of its one-line box, and the habitat pillar has no collider |
 
+## Sensitivity of the verdict (plan B, ESTIMATE)
+
+A desk check of the app's plan B on the Gale package (16 Nov 2026), not something the app shows. It answers "why does it spend the same oxygen climbing as standing?".
+
+**What plan B does.** Oxygen is counted per minute at one rate: walking spends 20 L per km at 19.3 min per km, 1.04 L/min; work at a stop spends 497 L / 480 min, also 1.04 L/min. Both are the 351 W (1200 Btu/h) design rate of NOTICE section 3. A slope slows the pace (Tobler's slope factor, no step over 20°), so a climb takes more minutes and spends more oxygen, but the oxygen per minute does not rise with the slope. The verdict (`MissionFallback.Make`, the same in the web port) is VIABLE when, at every stop, on arrival and again after its work, the oxygen left above the 31 L reserve covers the way back to the habitat from that stop (its minutes on the return map at the walking rate), and the plan ends with 0 L or more above the reserve. It is not checked between stops, and there is no limit on the clock.
+
+**Baseline** (the app's own numbers): 1812 m, 43 min walking, 2 h 12 min of work, 2 h 55 min in all, 181 L of O2 used (36 % of the tank), 285 L spare, VIABLE. The ways back from the four stops take 4 to 15 min (Campo Marte is the farthest). Work at the stops spends 137 of the 181 L, walking 44 L.
+
+| Change (the rest as in the app) | O2 used | Spare above the reserve | Verdict |
+|---|---|---|---|
+| None (baseline) | 181 L (36 %) | 285 L | VIABLE |
+| O2 per minute (walking and work) +10 % | 199 L (40 %) | 267 L | VIABLE |
+| O2 per minute +25 % | 226 L (46 %) | 240 L | VIABLE |
+| O2 per minute +50 % | 272 L (55 %) | 195 L | VIABLE |
+| O2 per minute +100 % | 362 L (73 %) | 104 L | VIABLE |
+| O2 per minute +150 % | 452 L (91 %) | 14 L | VIABLE |
+| O2 per minute +160 % | 471 L (95 %) | -5 L | NOT VIABLE (after the work at Campo Marte) |
+| Walking 25 % slower (more minutes per km, same L/min) | 192 L (39 %) | 274 L | VIABLE |
+| Walking 50 % slower | 203 L (41 %) | 263 L | VIABLE |
+| Walking twice as slow | 225 L (45 %) | 241 L | VIABLE |
+| Walking 25 % slower and O2 per minute +25 % | 240 L (48 %) | 226 L | VIABLE |
+| Walking 50 % slower and O2 per minute +50 % | 305 L (61 %) | 161 L | VIABLE |
+
+**Thresholds** (where the verdict flips to NOT VIABLE; to 1 %):
+
+- Oxygen per minute, walking and work together: VIABLE up to **+157 %** (2.57 times the estimate).
+- Oxygen per minute of walking only: up to +642 %. Of work only: up to +208 %, which is the same as task minutes 3.1 times longer (the task minutes are the team's proposal, NOTICE section 3).
+- Walking slower (minutes per km up, oxygen per minute as in the app): up to **+642 %**, that is 7.4 times as long per km (the plan then takes 7 h 29 min). Same threshold as walking oxygen only, because walking litres are minutes times rate.
+- Walking slower and all oxygen per minute higher by the same percentage: up to +105 %.
+
+Every flip is the same check: after the work at Campo Marte, the oxygen above the reserve no longer covers the 15-minute way back. The margins are wide because the plan uses about a third of the tank, and most of it goes to the work at the stops, not to walking.
+
+**Comparison with Apollo (not a change to the model).** Final Apollo 16 Lunar Surface Procedures (1972), the document NOTICE cites for the walkback limit, gives in section 3.6, table 3.6-4 (p. 237), the metabolic rates used for a contingency walkback: 1560 Btu/h for a return of up to 1 h (3.6 km/h walking rate) and 1290 Btu/h for a return over 1 h (2.7 km/h), both including a 20 percent uncertainty. The app's walking rate is the 1200 Btu/h design rate (1.04 L/min at 1 L/min of O2 ≈ 1157 Btu/h gives 1199 Btu/h). Every way back in this plan is under 1 h, so the matching row is 1560 Btu/h: about **30 % above** the app's walking rate. With walking at that rate the plan stays VIABLE with 272 L spare; with walking and work both 30 % higher, VIABLE with 231 L spare. The 1290 Btu/h row is about 8 % above the app's rate. The comparison uses only the rates: Apollo's walking speeds are not put into the plan.
+
+**How it was computed.** A scratch Node script, not in the repository, that requires `walkback-web/web/tools/walkback-model.cjs` (the port of `ReturnFallback.cs`, `MissionFallback.cs` and `HudEstimate.cs`) and edits nothing. It first runs `planB` of `build_route.mjs`, which refuses to go on unless it gets the app's numbers above, then takes the port's plan (legs, their walking minutes, the task minutes and the minutes back from every stop) and replays `MissionFallback.Make`'s oxygen count with the walking rate, the work rate and the walking minutes each multiplied by a factor. Thresholds by bisection. Slower walking was also checked by running the port again with its pace changed in memory: the route stays 1812 m (at 1.5, 2 and 3 times) and the verdict flips between 7.418 and 7.428 times, as in the replay. Litres and percentages are rounded to whole numbers.
+
 ## Decisions (proposed by Claude; Daniel decides)
 
 1. **Elevation from Mars Trek, kept on the data** (first plan B of guion §5.1 and §5.6, because the USGS server was slow; once the USGS window arrived at 12:51, Mars Trek stayed because its slopes match Curiosity's tilt sensor three times better: 2.0° against 6.2°). Its absolute heights read 17 m higher than the USGS DEM and the rover; slopes, routes and times do not change with that offset. To use the USGS DEM anyway: step 5 with `--dem-source usgs --dem data-pipeline/cache/usgs/gale_dem_window.tif`.
