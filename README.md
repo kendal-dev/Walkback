@@ -23,7 +23,7 @@
 
 Walkback is a mixed-reality prototype for Meta Quest 3 that tells an astronaut on Mars, at every step, whether they can still make it back to the habitat. Meta Quest 3 stands in for the helmet display.
 
-Built by team MARSXR for the NASA International Space Apps Challenge 2026, Santa Cruz (Bolivia) local event.
+Built by team MARSXR for the NASA International Space Apps Challenge 2026, Santa Cruz (Bolivia) local event, for the challenge "Interplanetary Survival Guide: Martian Map". First place at the Santa Cruz local event (15 November 2026).
 
 > NASA does not endorse this project. No NASA logo or insignia is used.
 > Built with AI assistance (Claude Code): see [AI_USAGE.md](AI_USAGE.md).
