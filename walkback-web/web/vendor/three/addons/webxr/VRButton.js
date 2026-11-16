@@ -1,4 +1,3 @@
-// Written with Codex (AI), directed and tested by team MARSXR
 class VRButton {
 
 	static createButton( renderer, sessionInit = {} ) {

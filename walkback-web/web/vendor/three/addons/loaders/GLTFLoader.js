@@ -1,4 +1,3 @@
-// Written with Codex (AI), directed and tested by team MARSXR
 import {
 	AnimationClip,
 	Bone,
