@@ -368,12 +368,60 @@ async function main() {
     world.add(base);
   }
 
+  const allLabels = [];
   function label(text, cls, obj, y) {
     const div = el("div", `lbl ${cls}`, text);
     const l = new CSS2DObject(div);
     l.position.set(0, y, 0);
     obj.add(l);
+    allLabels.push({ obj: l, div, w: 0, h: 0, lift: -1, dx: 0 });
     return l;
+  }
+
+  // Labels that would cover another one on screen go up, one step at a time, as the
+  // headset's pillar labels do (StopPillars). Lower labels on screen (nearer) keep their place.
+  // A label that would run past the map's side edge slides back inside it.
+  // The shift is the CSS `translate` property, so it adds to CSS2DRenderer's own transform.
+  const LABEL_GAP = 4, LABEL_MAX_STEPS = 4;
+  const labelAt = new THREE.Vector3();
+  function stackLabels(w, h) {
+    const live = [];
+    for (const L of allLabels) {
+      if (L.div.style.display === "none") continue;
+      if (!L.w) { L.w = L.div.offsetWidth; L.h = L.div.offsetHeight; }
+      if (!L.w) continue;
+      L.obj.getWorldPosition(labelAt).project(camera);
+      live.push({ L, x: (labelAt.x * 0.5 + 0.5) * w, y: (-labelAt.y * 0.5 + 0.5) * h });
+    }
+    live.sort((a, b) => b.y - a.y || a.x - b.x);
+    const placed = [];
+    for (const it of live) {
+      const { L } = it;
+      const EDGE = 6;
+      let dx = 0;
+      if (it.x < 0 || it.x > w) dx = 0; // its pillar is off the map: leave it where it is
+      else if (it.x - L.w / 2 < EDGE) dx = EDGE - (it.x - L.w / 2);
+      else if (it.x + L.w / 2 > w - EDGE) dx = w - EDGE - (it.x + L.w / 2);
+      const left = it.x + dx - L.w / 2, right = it.x + dx + L.w / 2;
+      let lift = 0;
+      for (let step = 0; step <= LABEL_MAX_STEPS; step++) {
+        const top = it.y - L.h / 2 - lift, bottom = top + L.h;
+        const hit = placed.find((p) => left < p.right + LABEL_GAP && right > p.left - LABEL_GAP &&
+          top < p.bottom + LABEL_GAP && bottom > p.top - LABEL_GAP);
+        if (!hit || step === LABEL_MAX_STEPS) { placed.push({ left, right, top, bottom }); break; }
+        lift = it.y - L.h / 2 - (hit.top - LABEL_GAP - L.h); // just above the label it hits
+      }
+      lift = Math.round(lift);
+      dx = Math.round(dx);
+      if (lift !== L.lift || dx !== L.dx) {
+        L.lift = lift;
+        L.dx = dx;
+        L.div.style.translate = lift || dx ? `${dx}px ${-lift}px` : "";
+        L.div.style.setProperty("--lift", `${lift}px`);
+        L.div.style.setProperty("--dx", `${dx}px`);
+        L.div.classList.toggle("lbl-raised", lift > 0);
+      }
+    }
   }
 
   // ---------- habitat ----------
@@ -625,10 +673,12 @@ async function main() {
   });
 
   // ---------- sizing + loop ----------
+  let viewW = 0, viewH = 0;
   function frame() {
     const w = viewer.clientWidth, h = viewer.clientHeight;
     renderer.setSize(w, h, false); // CSS keeps the canvas at 100% of the viewer
     labels.setSize(w, h);
+    viewW = w; viewH = h;
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
   }
@@ -647,7 +697,7 @@ async function main() {
     const inVR = renderer.xr.isPresenting;
     if (!inVR) controls.update();
     renderer.render(scene, camera);
-    if (!inVR) labels.render(scene, camera);
+    if (!inVR) { labels.render(scene, camera); stackLabels(viewW, viewH); }
   });
   $("loading").remove();
 

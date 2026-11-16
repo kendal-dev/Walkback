@@ -218,6 +218,14 @@ h1 { font-size: clamp(42px, 5.6vw, 74px); font-weight: 700; line-height: 1.02; l
 .gale-label.is-on { opacity: 1; transform: translate(-50%, 0); }
 .gale-label b { font-size: 15px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #fff; }
 .gale-label span { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: #bfeeff; }
+/* Phone width: the HUD ring is ~280 px, so "Curiosity's home" drops to its own line and the label sits a little higher, where the ring is wider. */
+@media (max-width: 560px) {
+  .gale-hud .gale-label { bottom: 13%; width: max-content; max-width: 86%; padding: 4px 10px; gap: 1px; }
+  .gale-label b { font-size: 13px; }
+  .gale-label span { font-size: 10px; letter-spacing: .04em; }
+  .gale-label .gale-sep { display: none; }
+  .gale-label .gale-home { display: block; }
+}
 .gale-btn {
   position: absolute; left: 50%; bottom: 0; z-index: 3; transform: translateX(-50%);
   transition: opacity .3s ease;
@@ -473,6 +481,11 @@ h1 { font-size: clamp(42px, 5.6vw, 74px); font-weight: 700; line-height: 1.02; l
 .lbl-habitat { border-color: rgba(255, 255, 255, .5); }
 .lbl-stop { border-color: rgba(255, 177, 59, .6); }
 .lbl-pnr { border-color: var(--danger); color: #ffd0cd; }
+/* A label lifted over another one (app.js stackLabels) keeps a thin line down to its pillar. */
+.lbl-raised::after {
+  content: ""; position: absolute; left: calc(50% - var(--dx, 0px)); top: 100%; width: 2px; margin-left: -1px;
+  height: var(--lift, 0); background: rgba(255, 182, 11, .75);
+}
 
 .tap-card {
   position: absolute; top: 12px; left: 12px; z-index: 3;
