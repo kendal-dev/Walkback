@@ -5,9 +5,9 @@
   "centerLon": 137.381,
   "sideMeters": 1000,
   "habitat": {
-    "x": 0,
-    "y": 0,
-    "status": "set by --habitat until Daniel decides"
+    "x": 514.8,
+    "y": 777.0,
+    "status": "team proposal (DATA.md, decision 3); build_site.py takes it from --habitat"
   },
   "sources": {
     "usgs": {
@@ -115,7 +115,7 @@
           "minutes": 10
         }
       ],
-      "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30 (same set as Valle de la Luna)",
+      "taskSource": "Task times proposed by the team; NASA/TP-2017-219457, table 30, gives Apollo station-task statistics to compare with (same set as Valle de la Luna)",
       "risk": "Gentle bedrock, slopes under 8° around it: the closest stop, 200 m from the habitat.",
       "photoCredit": "",
       "panorama": "",
@@ -148,7 +148,7 @@
           "minutes": 10
         }
       ],
-      "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30",
+      "taskSource": "Task times proposed by the team; NASA/TP-2017-219457, table 30, gives Apollo station-task statistics to compare with",
       "risk": "Floor of a hollow, 2 m below the ridge next to it; edges up to 18° slope.",
       "photoCredit": "",
       "panorama": "",
@@ -176,7 +176,7 @@
           "minutes": 2
         }
       ],
-      "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30",
+      "taskSource": "Task times proposed by the team; NASA/TP-2017-219457, table 30, gives Apollo station-task statistics to compare with",
       "risk": "Ridge top, 2 m above the hollow; slopes up to 18° on the way up.",
       "photoCredit": "",
       "panorama": "",
@@ -208,7 +208,7 @@
           "minutes": 10
         }
       ],
-      "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30 (same set as Valle de la Luna)",
+      "taskSource": "Task times proposed by the team; NASA/TP-2017-219457, table 30, gives Apollo station-task statistics to compare with (same set as Valle de la Luna)",
       "risk": "Loose blocks: next door at Atacama the drilled rock came up with the drill. 77 m above the habitat.",
       "photoCredit": "",
       "panorama": "",
