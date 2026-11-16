@@ -1,15 +1,15 @@
 # Written with Claude Code (AI), directed and tested by team MARSXR
 #
-# Publishes web/ to GitHub Pages every time main changes there.
+# Publishes walkback-web/web/ to GitHub Pages every time main changes there.
 # One-time setup (Daniel): Settings -> Pages -> Source: GitHub Actions.
-# No Git LFS: web/ must not contain LFS files (Pages cannot serve them).
+# No Git LFS: walkback-web/web/ must not contain LFS files (Pages cannot serve them).
 name: Publish web page
 
 on:
   push:
     branches: [main]
     paths:
-      - "web/**"
+      - "walkback-web/web/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -32,15 +32,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: false
-      - name: Fail if web/ has Git LFS pointers
+      - name: Fail if the page has Git LFS pointers
         run: |
-          if grep -rlI "^version https://git-lfs.github.com/spec/" web/; then
-            echo "These web/ files are LFS pointers. Take web/ out of LFS in .gitattributes."
+          if grep -rlI "^version https://git-lfs.github.com/spec/" walkback-web/web/; then
+            echo "These files are LFS pointers. Take walkback-web/web/ out of LFS in .gitattributes."
             exit 1
           fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: web
+          path: walkback-web/web
       - id: deployment
         uses: actions/deploy-pages@v4
