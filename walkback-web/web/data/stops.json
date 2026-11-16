@@ -1,23 +1,128 @@
 [
-  {
-    "id": "A",
-    "name": "Layered outcrop",
-    "x": 430,
-    "y": 420,
-    "science": "TODO: fake stop"
-  },
-  {
-    "id": "B",
-    "name": "Dark sand ripples",
-    "x": 690,
-    "y": 560,
-    "science": "TODO: fake stop"
-  },
-  {
-    "id": "C",
-    "name": "Vein-filled bedrock",
-    "x": 520,
-    "y": 800,
-    "science": "TODO: fake stop"
-  }
+ {
+  "id": "altadena",
+  "name": "Altadena",
+  "science": "Curiosity's 43rd drill hole, in the boxwork bedrock: its powder went to the CheMin and SAM labs.",
+  "tasks": [
+   {
+    "name": "Check the site",
+    "minutes": 5
+   },
+   {
+    "name": "Set up the drill",
+    "minutes": 8
+   },
+   {
+    "name": "Drill",
+    "minutes": 15
+   },
+   {
+    "name": "Extract the core",
+    "minutes": 10
+   }
+  ],
+  "risk": "Gentle bedrock, slopes under 8° around it: the closest stop, 200 m from the habitat.",
+  "photoCredit": "",
+  "panorama": "",
+  "x": 650.1,
+  "y": 924.0,
+  "tag": "Curiosity drilled here · Jun 2025",
+  "tagSource": "NASA Curiosity blog, sols 4568-4569: drill hole image of 8 Jun 2025 (sol 4564)",
+  "scienceSource": "NASA Curiosity blog, sols 4568-4569 (planning date 11 Jun 2025): Altadena drill hole imaged on sol 4564 (8 Jun 2025), sample delivered to CheMin and SAM, '42 drill sites that came before'",
+  "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30 (same set as Valle de la Luna)"
+ },
+ {
+  "id": "valle-de-la-luna",
+  "name": "Valle de la Luna",
+  "science": "Curiosity's 44th drill hole, in the Monte Grande hollow: is the hollow rock different from the ridges?",
+  "tasks": [
+   {
+    "name": "Check the site",
+    "minutes": 5
+   },
+   {
+    "name": "Set up the drill",
+    "minutes": 8
+   },
+   {
+    "name": "Drill",
+    "minutes": 15
+   },
+   {
+    "name": "Extract the core",
+    "minutes": 10
+   }
+  ],
+  "risk": "Floor of a hollow, 2 m below the ridge next to it; edges up to 18° slope.",
+  "photoCredit": "",
+  "panorama": "",
+  "x": 502.1,
+  "y": 450.3,
+  "tag": "Curiosity drilled here · Oct 2025",
+  "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)",
+  "scienceSource": "NASA Curiosity blog, sols 4695-4701 (13 Nov 2025): drill hole 44 inside the Monte Grande hollow",
+  "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30"
+ },
+ {
+  "id": "nevado-sajama",
+  "name": "Nevado Sajama",
+  "science": "Drilled on a boxwork ridge top, 10 m from Valle de la Luna: ridge rock versus hollow rock.",
+  "tasks": [
+   {
+    "name": "Describe the outcrop",
+    "minutes": 5
+   },
+   {
+    "name": "Break and collect with tongs",
+    "minutes": 11
+   },
+   {
+    "name": "Photograph and bag",
+    "minutes": 2
+   }
+  ],
+  "risk": "Ridge top, 2 m above the hollow; slopes up to 18° on the way up.",
+  "photoCredit": "NASA/JPL-Caltech/MSSS, Mastcam mosaic PIA26696 (sols 4714-4741)",
+  "panorama": "PIA26696",
+  "x": 500.2,
+  "y": 440.3,
+  "tag": "Curiosity drilled here · Nov 2025",
+  "tagSource": "Drill sols from the NASA Curiosity blog; Earth dates from the REMS feed (sol 4693 = 2025-10-19, sol 4718 = 2025-11-13)",
+  "scienceSource": "NASA Curiosity blog, sols 4716-4722 (18 Nov 2025): drilled on top of a ridge, Navcam sol 4718",
+  "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30",
+  "nameOrigin": "NASA named the target after an extinct volcano, the highest peak in Bolivia"
+ },
+ {
+  "id": "campo-marte",
+  "name": "Campo Marte",
+  "science": "Drill hole in the layered sulfate unit just above the boxwork; ChemCam and APXS measured it first.",
+  "tasks": [
+   {
+    "name": "Check the site",
+    "minutes": 5
+   },
+   {
+    "name": "Set up the drill",
+    "minutes": 8
+   },
+   {
+    "name": "Drill",
+    "minutes": 15
+   },
+   {
+    "name": "Extract the core",
+    "minutes": 10
+   }
+  ],
+  "risk": "Loose blocks: next door at Atacama the drilled rock came up with the drill. 77 m above the habitat.",
+  "photoCredit": "",
+  "panorama": "",
+  "x": 534.3,
+  "y": 61.5,
+  "tag": "Curiosity drilled here · May 2026",
+  "tagSource": "NASA Curiosity blog, sols 4900-4907: drill hole image of 16 May 2026 (sol 4897)",
+  "scienceSource": "NASA Curiosity blog, sols 4893-4899 (planning date 15 May 2026): same stratum as Atacama, 'the layered sulfate unit above the boxwork structures'; sols 4900-4907: first colour look of the drill hole, 16 May 2026 (sol 4897)",
+  "taskSource": "Task times proposed from NASA/TP-2017-219457, table 30 (same set as Valle de la Luna)",
+  "nameOrigin": "NASA named it after a natural red sandstone feature in Bolivia: 'Field of Mars'"
+ }
 ]

@@ -2,8 +2,9 @@
 //
 // Walkback web viewer. Reads web/data/ (copied from session B and C outputs by
 // tools/build_data.mjs) and draws the 1 km² site. It never computes routes or
-// return times itself: those numbers come from session C's model, the same one
-// the headset uses. Derived here, for display only: the HEIGHT contours and the SLOPE
+// return times itself: those numbers come from data/route.json and data/return_map.bin
+// (the team's model when it exists; until then the app's plan B over the relief, marked
+// ESTIMATE, the same numbers the headset shows). Derived here, for display only: the HEIGHT contours and the SLOPE
 // layer (from the heights), the RETURN ON FOOT rings (from the model's minutes),
 // and the "what if the tank ran low" overlay, which compares the model's litres
 // in return_map.bin with a smaller tank (the same check as the headset's WHAT IF).
@@ -68,7 +69,13 @@ function normalizeRoute(r) {
   const verdict = String(r.verdict ?? r.result ?? "").toUpperCase();
   const viable = !pnr && verdict.includes("VIABLE") && !verdict.includes("NOT");
   const capacity = num(r.o2CapacityLiters ?? r.capacityLiters ?? r.tankLiters);
-  return { points, pnr, verdict, viable, capacity: Number.isFinite(capacity) && capacity > 0 ? capacity : null };
+  const reserve = num(r.o2ReserveLiters ?? r.reserveLiters);
+  return {
+    points, pnr, verdict, viable,
+    capacity: Number.isFinite(capacity) && capacity > 0 ? capacity : null,
+    reserve: Number.isFinite(reserve) && reserve > 0 ? reserve : 0, // litres kept untouched, as in the headset
+    estimate: r.estimate === true, // plan B over the relief, not the walking model yet
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -405,7 +412,7 @@ async function main() {
     const head = new THREE.Mesh(new THREE.SphereGeometry(6, 20, 12), new THREE.MeshLambertMaterial({ color: 0xffb60b, emissive: 0x4a3000 }));
     head.position.y = 42;
     g.add(head);
-    label(s.name ? `${s.id} · ${s.name}` : String(s.id), "lbl-stop", g, 54);
+    label(s.name || String(s.id), "lbl-stop", g, 54);
     world.add(g);
   }
 
@@ -495,14 +502,15 @@ async function main() {
     overlay.renderOrder = 1;
     world.add(overlay);
 
-    // Paints the mask for a tank holding `liters`; returns the share of the square in red.
+    // Paints the mask for `liters` of oxygen to walk with; returns the share in red of the
+    // ground that has a way back on foot (the headset's count: ground with no way back is not in it).
     const paint = (liters) => {
-      let red = 0;
+      let red = 0, reachable = 0;
       for (let i = 0; i < G * G; i++) {
         const m = ret[i * 2], l = ret[i * 2 + 1];
         const noWay = !(Number.isFinite(m) && m >= 0 && m < 1e6);
         const out = noWay || (Number.isFinite(l) && l > liters);
-        if (out) red++;
+        if (!noWay) { reachable++; if (out) red++; }
         md.data[i * 4] = 255; md.data[i * 4 + 1] = 64; md.data[i * 4 + 2] = 56;
         md.data[i * 4 + 3] = out ? 160 : 0;
       }
@@ -511,7 +519,7 @@ async function main() {
       bx.imageSmoothingEnabled = true;
       bx.drawImage(mask, 0, 0, big.width, big.height);
       overlayTex.needsUpdate = true;
-      return red / (G * G);
+      return reachable ? red / reachable : 0;
     };
 
     const box = $("whatif");
@@ -525,10 +533,15 @@ async function main() {
         overlay.visible = false;
         note.textContent = "As planned: the panel shows the whole walk with a full tank.";
       } else {
-        budget = { pct, liters: (capacity * pct) / 100 };
+        // What is left to walk with: the tank at this level minus the reserve (the headset's rule).
+        const tank = (capacity * pct) / 100;
+        budget = { pct, liters: Math.max(0, tank - route.reserve) };
         const share = paint(budget.liters);
         overlay.visible = true;
-        note.textContent = `With ${pct}% of the tank left (${Math.round(budget.liters)} L), red is ground you could no longer walk back from: ${Math.round(share * 100)}% of the square.`;
+        const kept = route.reserve ? `, ${Math.round(route.reserve)} L of it kept as reserve` : "";
+        note.textContent = share > 0
+          ? `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), red is ground you could no longer walk back from: ${(share * 100).toFixed(1)}% of the ground that has a way back on foot.`
+          : `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), every place that has a way back on foot is still in reach.`;
       }
       $("legend-whatif").hidden = !overlay.visible;
       if (tapMarker.visible && lastTap) showTap(lastTap.x, lastTap.y);
@@ -655,11 +668,12 @@ function renderRoutePanel(route, stopById) {
   const text = box.querySelector(".verdict-text");
   if (!route || route.points.length < 2) {
     word.textContent = "Route pending";
-    text.textContent = "It comes from session C's model, the same numbers the headset shows.";
+    text.textContent = "The route has not been built for this map yet (tools/build_data.mjs).";
     return;
   }
   const last = route.points[route.points.length - 1];
   box.classList.remove("verdict-pending");
+  $("verdict-estimate").hidden = !route.estimate;
   if (route.viable) {
     box.classList.add("verdict-ok");
     word.textContent = "VIABLE";
@@ -695,10 +709,12 @@ function renderRoutePanel(route, stopById) {
     ol.append(li);
   };
   row("H", "home", "Leave the habitat", route.points[0]);
-  for (const p of stopPts) {
+  stopPts.forEach((p, i) => {
     const s = stopById.get(String(p.stopId));
-    row(String(p.stopId), "", s?.name ?? `Stop ${p.stopId}`, p);
-  }
+    // The dot holds a short mark: the stop's id when it is one or two characters, else its order.
+    const id = String(p.stopId);
+    row(id.length <= 2 ? id : String(i + 1), "", s?.name ?? `Stop ${id}`, p);
+  });
   if (route.pnr) row("!", "pnr", "Point of no return", route.pnr);
   row("H", "home", route.viable ? "Back at the habitat" : "End of route", last);
 }

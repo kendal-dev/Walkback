@@ -1,5 +1,14 @@
 {
-  "test": true,
-  "note": "Invented test terrain (TODO). Real Gale data replaces it.",
-  "builtAt": "2026-11-14T14:48:00.327Z"
+  "test": false,
+  "model": "plan B over the relief (ESTIMATE), tools/build_route.mjs",
+  "builtAt": "2026-11-16T02:57:30.078Z",
+  "copied": {
+    "site.json": "Assets/StreamingAssets/Site/site.json",
+    "heightmap.bin": "Assets/StreamingAssets/Site/heightmap.r16",
+    "stops.json": "Assets/StreamingAssets/Site/stops.json",
+    "ortho.jpg": "Assets/StreamingAssets/Site/ortho.jpg",
+    "curiosity_traverse.json": "Assets/StreamingAssets/Site/curiosity_traverse.json",
+    "return_map.bin": "plan B over the relief (ESTIMATE), tools/build_route.mjs",
+    "route.json": "plan B over the relief (ESTIMATE), tools/build_route.mjs"
+  }
 }

@@ -11,15 +11,19 @@
 //   model-tests/out/route.json                 -> web/data/route.json     (session C)
 //   model-tests/out/return_map.bin             -> web/data/return_map.bin (session C)
 //
-// Usage (from the repo root): node web/tools/build_data.mjs
+// When model-tests/out/ does not exist, route.json and return_map.bin are computed from the
+// app's plan B (tools/build_route.mjs), labelled ESTIMATE like in the headset.
+//
+// Usage (from the repo root): node walkback-web/web/tools/build_data.mjs
 // Run "git lfs pull" first so the .r16 is the real file and not an LFS pointer.
 
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync, copyFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { findRepo, planB } from "./build_route.mjs";
 
 const WEB = join(dirname(fileURLToPath(import.meta.url)), "..");
-const REPO = join(WEB, "..");
+const REPO = findRepo(); // the page lives in walkback-web/web/, the app's data at the repository root
 const OUT = join(WEB, "data");
 const SITE = join(REPO, "Assets", "StreamingAssets", "Site");
 const MODEL = join(REPO, "model-tests", "out");
@@ -75,14 +79,30 @@ take(join(SITE, "heightmap.r16"), "heightmap.bin", { required: true, bytes: HM *
 take(join(SITE, "stops.json"), "stops.json", { required: true });
 take(join(SITE, "ortho.jpg"), "ortho.jpg", { maxMB: 5 });
 take(join(SITE, "curiosity_traverse.json"), "curiosity_traverse.json"); // [{sol, x, y}], rover positions (session B)
-take(join(MODEL, "route.json"), "route.json");
-take(join(MODEL, "return_map.bin"), "return_map.bin", { bytes: GRID * GRID * 8 });
+// The route and the return map: the team's model when it has written them (session C),
+// else the app's plan B over the relief (ESTIMATE), computed here from the same site package.
+let model = "model-tests/out";
+if (existsSync(join(MODEL, "route.json")) && existsSync(join(MODEL, "return_map.bin"))) {
+  take(join(MODEL, "route.json"), "route.json");
+  take(join(MODEL, "return_map.bin"), "return_map.bin", { bytes: GRID * GRID * 8 });
+} else if (!problems.length) {
+  model = "plan B over the relief (ESTIMATE), tools/build_route.mjs";
+  try {
+    const { route, returnMap, numbers } = planB(SITE);
+    writeFileSync(join(OUT, "route.json"), JSON.stringify(route, null, 1));
+    writeFileSync(join(OUT, "return_map.bin"), returnMap);
+    copied["route.json"] = copied["return_map.bin"] = model;
+    console.log("plan B (ESTIMATE):", JSON.stringify(numbers));
+  } catch (err) {
+    problems.push(err.message);
+  }
+}
 
 if (problems.length) {
   console.error("build_data FAILED:\n  - " + problems.join("\n  - "));
   process.exit(1);
 }
 
-writeFileSync(join(OUT, "status.json"), JSON.stringify({ test: false, builtAt: new Date().toISOString(), copied }, null, 2));
+writeFileSync(join(OUT, "status.json"), JSON.stringify({ test: false, model, builtAt: new Date().toISOString(), copied }, null, 2));
 console.log("web/data updated from:");
 for (const [k, v] of Object.entries(copied)) console.log(`  ${v} -> web/data/${k}`);
