@@ -83,12 +83,16 @@ How plan B works: each leg is the fastest way over the relief (Dijkstra on the e
 | Verdict board and charts, START MISSION | Passes | Yes (15 Nov) |
 | Route over the relief (plan B) | Passes | Yes, on the table (15 Nov) |
 | Helmet HUD, corner map, wrist map left in the air | Passes | Yes inside the 360° photo (15 Nov: its numbers matched the plan's); in mission mode it is on screen, its details not yet checked |
-| Mission mode (Mars at 1:1, room view, back to the table) | Passes | Yes (15 Nov: entered twice, 72 fps on Mars) |
-| Jumps between stops, arrival card, TURN BACK NOW | Passes | Not yet |
-| WHAT IF (tank at 15 % and 8 %) | Passes | Not yet in this build (it needs the controllers); seen on 14 Nov with an earlier build |
-| Current conditions card | Passes | Yes: the space-weather line was read from NASA DONKI at start and marked "(live)" (15 Nov, 03:28 local time) |
+| Mission mode (Mars at 1:1, room view, back to the table) | Passes | Yes (15 Nov: entered at 03:41 and 03:53, and six more times between 09:08 and 09:35; the ROOM VIEW and BACK TO TABLE signs worked; every 10-second average on Mars was 70.6 to 72.0 fps) |
+| Jumps between stops (NEXT STOP sign, left grip) | Passes | Yes (15 Nov, 09:08 to 09:35: nine jumps, eight with the NEXT STOP sign and one with the left grip, as far as the third stop, Nevado Sajama) |
+| RECENTER sign in mission mode | Passes | Yes (15 Nov, 09:08 and 09:35: three presses, each logged as a recenter) |
+| Arrival card, TURN BACK NOW | Passes | Not yet (no line for either in the 15 Nov logs) |
+| WHAT IF (tank at 15 % and 8 %) | Passes | Not seen on 15 Nov (no WHAT IF line in the logs); seen on 14 Nov with an earlier build |
+| Current conditions card | Passes | Yes: the space-weather line was read from NASA DONKI at start and marked "(live)" (15 Nov, 03:28 local time); at 09:06 and 09:34 NASA DONKI could not be read and the card kept the stored line, marked "(stored in the app)" |
 
-This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) with the build of 01:37 (from commit `7addfa2`), read from the app's own log. The APK in the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission) was built later the same morning from commit `ee833af`: between those two commits no file under `Assets/`, `ProjectSettings/` or `Packages/` changed (only the presentation and the documentation), so it is the same app code as the build in this table. With the controllers still to try: the WHAT IF in this build, the jumps, the arrival card, RECENTER, the menu button and TURN BACK NOW.
+This table is what the team saw on 15 Nov (local time), read from the app's own log lines: between 03:28 and 03:54 with the build of 01:37 (from commit `7addfa2`), using hand tracking; then between 09:06 and 09:22 (hand tracking) and between 09:34 and 09:36 (controllers) with an APK installed after 03:54. The logs do not name that later build; no file under `Assets/`, `ProjectSettings/` or `Packages/` changed on `main` after commit `7addfa2`. The APK in the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission) was built later the same morning from commit `ee833af`: between those two commits no file under `Assets/`, `ProjectSettings/` or `Packages/` changed (only the presentation and the documentation), so it is the same app code as the builds in this table. Still to try: the WHAT IF in these builds, the arrival card, TURN BACK NOW, the jump to the last stop (Campo Marte) and the menu button (≡).
+
+People at the venue: on 15 Nov about ten visitors at the Santa Cruz event asked to try the headset; the team let them and asked them for recommendations by word of mouth. It was informal (no tasks, no scores, no written notes), so this README reports no results from it.
 
 ---
 
