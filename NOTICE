@@ -246,3 +246,90 @@ The slides for the local defense are not distributed in this repository
 (removed on 15 Nov 2026). Earlier versions, with their own credits in
 this file, remain in the git history. The demo sent to NASA is a
 video of the app itself, recorded from the headset.
+
+
+==========================================================================
+7. The web page (walkback-web/web/)
+==========================================================================
+
+The page loads nothing from third parties: the files below are copied
+into the repository. Its own code (index.html, style.css and the .js
+files outside vendor/) is the team's, under the Apache License; each
+file's first line names the AI tool it was written with (AI_USAGE.md).
+
+three.js (vendor/three/)
+  three.module.min.js: three.js revision 170 (the file's own revision
+  value). Its header: "Copyright 2010-2024 Three.js Authors",
+  SPDX-License-Identifier: MIT.
+  Add-ons: CSS2DRenderer.js, OrbitControls.js, loaders/GLTFLoader.js,
+  utils/BufferGeometryUtils.js and webxr/VRButton.js; these files carry
+  no version or licence header of their own.
+  License: MIT License, full text in vendor/three/LICENSE
+  ("Copyright 2010-2024 three.js authors").
+
+Fonts (vendor/fonts/)
+  satoshi-variable.woff2
+    Satoshi (variable, weights 300-900), designed by Deni Anggara,
+    published by Indian Type Foundry on Fontshare
+    (www.fontshare.com/fonts/satoshi, downloaded 14 Nov 2026).
+    License: ITF Free Font License (FFL), as stated in
+    vendor/fonts/LICENSE-Satoshi.txt. That file is a short note with a
+    link to the full text (www.fontshare.com/licenses/itf-ffl); the full
+    licence text is not in the repository.
+  inter-latin-wght-normal.woff2
+    Inter. Copyright 2016 The Inter Project Authors
+    (github.com/rsms/inter).
+    License: SIL Open Font License, Version 1.1, full text in
+    vendor/fonts/LICENSE-Inter.txt.
+
+Models and video (data/)
+  curiosity.glb
+    Curiosity Rover 3D model, NASA
+    (science.nasa.gov/resource/curiosity-rover-3d-model/; original file
+    24584_Curiosity_static.glb). Adapted for Walkback with
+    tools/prepare_curiosity.mjs: simplified and quantized geometry,
+    resized WebP textures (data/CURIOSITY_CREDIT.txt).
+    Credit: NASA/JPL-Caltech.
+  mars.glb
+    The Mars globe of the page's opening (hero.js calls it "the team's
+    Mars globe"). The file says it was exported from Blender ("Khronos
+    Blender glTF 2.0 I/O") with two textures named mars_diff.jpg and
+    mars_norm.jpg. It was added with the page (commit fc929d8, no
+    description). Its source, and the source of its textures, is not
+    recorded in the repository.
+  gale-crater-zoom.mp4 and gale-crater-zoom.jpg
+    An H.264 video and a still image of the whole disk of Mars, added
+    with the page (commit fc929d8). Their source is not recorded in the
+    repository. No file of the page uses them today (the zoom to Gale is
+    drawn in 3D by hero.js).
+
+Copies of the app's data (data/, written by tools/build_data.mjs; the
+list is in data/status.json)
+  site.json, stops.json, curiosity_traverse.json, heightmap.bin (the
+  same bytes as heightmap.r16) and ortho.jpg (resized to 2048 px).
+  Same sources and credits as in section 1; the page's footer lists the
+  credits from site.json.
+  route.json and return_map.bin are computed by tools/build_route.mjs
+  with the plan B of section 3 and are marked ESTIMATE on the page.
+
+Pictures (media/)
+  sajama-360.jpg
+    Curiosity's Mastcam 360-degree mosaic PIA26696 at Nevado Sajama, as
+    the page's caption says. Credit: NASA/JPL-Caltech/MSSS.
+  flow-orbital.jpg
+    The page describes it as the HiRISE orbital photo of the Gale square
+    and tags it "MRO HiRISE, USGS, NASA/JPL". The repository does not
+    record how it was cut; the HiRISE photo the app ships is ortho.jpg
+    (section 1, with its credit).
+  flow-slope.jpg, flow-return.jpg, flow-route.jpg, headset-globe.jpg,
+  headset-not-viable.jpg, headset-route.jpg, headset-viable.jpg
+    Screenshots of the app and of the published page. They show the
+    data of section 1 (credits there).
+  qr-github.png
+    A QR code to github.com/kendal-dev/Walkback.
+
+Logo (brand/)
+  walkback-logo-480.png, logo-96.png, favicon-64.png,
+  apple-touch-icon.png: the Walkback logo and its icons, added in PR 4
+  (commit f6cb515). The repository does not record how the logo was
+  made.
