@@ -252,7 +252,8 @@ video of the app itself, recorded from the headset.
 7. The web page (walkback-web/web/)
 ==========================================================================
 
-The page loads nothing from third parties: the files below are copied
+The page loads no code, fonts or media from third parties: the files
+below are copied
 into the repository. Its own code (index.html, style.css and the .js
 files outside vendor/) is the team's, under the Apache License; each
 file's first line names the AI tool it was written with (AI_USAGE.md).
@@ -333,3 +334,11 @@ Logo (brand/)
   apple-touch-icon.png: the Walkback logo and its icons, added in PR 4
   (commit f6cb515). The repository does not record how the logo was
   made.
+
+Source of the Apollo walkback limit (the problem card)
+  Final Apollo 16 Lunar Surface Procedures, 16 March 1972, NASA Manned
+  Spacecraft Center, Flight Crew Operations Directorate, section 3.6
+  "EMU Consumables Data for Traverse Planning", p. 230: the traverse must
+  allow a walkback to the lunar module after a rover failure, on the
+  backpacks' (PLSS) consumables.
+  https://www.apollojournals.org/alsj/a16/a16flsp.pdf
