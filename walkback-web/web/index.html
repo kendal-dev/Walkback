@@ -139,7 +139,7 @@
         <article class="problem-card">
           <p class="problem-stat"><b>1</b> tank</p>
           <h3>Fixed oxygen budget</h3>
-          <p>Apollo crews driving the lunar rover kept a walkback limit: never farther from the lander than their suits could walk them back. Walkback recalculates that limit at every step, from the slope and the effort of walking.</p>
+          <p>Apollo crews driving the lunar rover kept a walkback limit: never farther from the lander than their suits could walk them back. Walkback recalculates that limit at every step: the slope of the ground sets the walking pace, and the oxygen is counted per minute (ESTIMATE).</p>
         </article>
       </div>
     </section>
@@ -316,18 +316,18 @@
           <img class="flow-img" src="media/flow-slope.jpg" width="640" height="400" alt="The app's slope layer: blue under 10 degrees, orange 10 to 20, hatched over 20." loading="lazy">
           <span class="flow-n">02</span>
           <h3>Slope &amp; traversability</h3>
-          <p>Slope from the heights, cell by cell. Over 20° is no-go: the hatched zones on the map's SLOPE layer. Checked against Curiosity's own tilt sensor: 2.0° mean difference over 85 positions.</p>
+          <p>Slope from the heights, cell by cell. Over 20° is no-go: the hatched zones on the map's SLOPE layer. Checked against Curiosity's own tilt sensor: 2.0° on average over 85 positions (r = 0.77, largest 21°).</p>
           <p class="flow-tag">Over 20° · no-go</p>
         </li>
         <li class="flow-step">
-          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="Earlier build of the app's return layer: test rings of equal walking time around the habitat." loading="lazy">
+          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="The web map's RETURN ON FOOT layer: minutes back to the habitat in green with contour lines, dark where there is no way back, and the route to the stops (ESTIMATE)." loading="lazy">
           <span class="flow-n">03</span>
           <h3>257 × 257 return grid</h3>
           <p>For each of 66,049 cells, 3.9 m apart: the minutes and the litres of oxygen it takes to walk back to the habitat.</p>
           <p class="flow-tag">Computed in the headset · offline</p>
         </li>
         <li class="flow-step">
-          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="Earlier build: a test route from the habitat to Nevado Sajama drawn over the relief, with contour lines." loading="lazy">
+          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="The planned route over the real Gale relief, from the habitat through the Curiosity drill sites to Campo Marte (ESTIMATE)." loading="lazy">
           <span class="flow-n">04</span>
           <h3>A verdict on every step</h3>
           <p>The headset reads the cell under the astronaut's feet and warns before the point of no return, with no network.</p>
@@ -363,7 +363,7 @@
         </figure>
         <figure class="shot shot-wide">
           <a href="media/sajama-360.jpg" target="_blank" rel="noopener"><img src="media/sajama-360.jpg" width="1600" height="505" alt="Curiosity's Mastcam panorama at Nevado Sajama: layered rock and sand on the slopes of Mount Sharp." loading="lazy"></a>
-          <figcaption><span class="shot-tag">360° photo</span>At a stop, the astronaut stands inside Curiosity's 360° photo of it. Nevado Sajama, Mastcam mosaic PIA26696 (NASA/JPL-Caltech/MSSS).</figcaption>
+          <figcaption><span class="shot-tag">360° photo</span>At Nevado Sajama, the stop with a panorama, the astronaut stands inside Curiosity's 360° photo of it: Mastcam mosaic PIA26696 (NASA/JPL-Caltech/MSSS).</figcaption>
         </figure>
       </div>
       <p class="shot-note">App screens from an earlier build (14 Nov), captured by its automatic test in the Unity editor; the numbers on them are test values, as the screens themselves say. The panorama is NASA's real Mastcam photo.</p>
@@ -427,7 +427,7 @@
         </details>
         <details class="faq-item">
           <summary>Is there GPS on Mars?</summary>
-          <p>No. Rovers find where they are with cameras and motion sensors, corrected with HiRISE photos taken from orbit. The Quest headset tracks itself the same way, with its own cameras.</p>
+          <p>No. Rovers find where they are with cameras and motion sensors, corrected with HiRISE photos taken from orbit. The Quest headset tracks itself with its own cameras and motion sensors.</p>
         </details>
         <details class="faq-item">
           <summary>What does “live” mean?</summary>
