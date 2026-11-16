@@ -19,6 +19,8 @@ What the app reads from `Assets/StreamingAssets/Site/`, where each file comes fr
 
 Local coordinates: meters from the south-west corner, x east, y north. The square is centered on 4.807° S, 137.381° E; the projection is equirectangular on the Mars 2000 sphere (R = 3 396 190 m) with true scale at the center latitude.
 
+The web page reads copies of this package in `walkback-web/web/data/` (`site.json`, `stops.json`, `heightmap.bin` = the same bytes as `heightmap.r16`, `ortho.jpg`), made by `node walkback-web/web/tools/build_data.mjs` from `Assets/StreamingAssets/Site/` (run `git lfs pull` first); the same script writes the plan B route and return map (`route.json`, `return_map.bin`, ESTIMATE). Do not edit those copies by hand: change this package and run the script again.
+
 ## Sources
 
 | Layer | Product | Link | Credit |
@@ -84,7 +86,7 @@ Both `.glb` need the glTFast package in Unity (offline kit, guion §5.5); withou
 | DEM height against the rover's elevation, full USGS window | USGS - rover = -0.01 m mean, 0.14 m std. Probably not independent: the rover's localized elevation is likely tied to this same DEM |
 | Heightmap quantization | Under 1.74 mm |
 | **Does the 1 m DEM show the boxwork hollows?** | **No.** Hollows from the DEM (more than 0.5 m below the 20 m mean) cover 3.2 % of the grid and are no darker in the photo (116.5 vs 117.8). At 1 m only 6.3 % of the dark ground in the photo is a DEM hollow (3.2 % by chance). The USGS strip does no better (r = 0.03 against the photo, Mars Trek 0.15) |
-| Unity automatic test with this package (session A's test, 11:56) | 215 of 217 (at 11:56; the whole test passed 408 of 408 at 23:06). Every site check passes (contract, r16, sources, panel naming mission, instrument and resolution, pillars on the ground). The two failures are session A's: the panel data line wraps out of its one-line box, and the habitat pillar has no collider |
+| Unity automatic test with this package (session A's test, 11:56) | 215 of 217 (at 11:56; the whole test passed 424 of 424 on 15 Nov 01:33). Every site check passes (contract, r16, sources, panel naming mission, instrument and resolution, pillars on the ground). The two failures are session A's: the panel data line wraps out of its one-line box, and the habitat pillar has no collider |
 
 ## Decisions (proposed by Claude; Daniel decides)
 
@@ -94,6 +96,6 @@ Both `.glb` need the glTFast package in Unity (offline kit, guion §5.5); withou
 4. **Stops at the rover's positions** during each drill campaign: Valle de la Luna at the sol 4687 position (parked to sol 4709; drilled sols 4689-4695), Nevado Sajama at the sol 4711 position (parked to sol 4741; drilled sol 4718). They are 10 m apart.
 5. **Two more drill stops (14 Nov 15:35), for variety and a real distance:** **Altadena**, Curiosity's 43rd drill hole (the blog: "the 42 drill sites that came before"), at the sol 4560 position (parked to sol 4571; hole imaged sol 4564), 200 m from the habitat; and **Campo Marte**, in the layered sulfate unit just above the boxwork, named by NASA after a red sandstone feature in Bolivia, at the sol 4893 position (parked to sol 4912; hole imaged sol 4897), 716 m from the habitat and 77 m higher. Its risk line is the blog's: next door, the Atacama block came up with the drill. Altadena came from Daniel's research round (Gemini and Grok, prompts R8-1 and R8-2), Campo Marte from a Fable 5.2 audit; positions checked against the waypoints, every line against the blog. The drill number 44 that the research gave is used for Valle de la Luna ("Curiosity's 44th drill hole" on screen): the NASA Curiosity blog of 13 Nov 2025 says the rover "drilled its 44th hole on Mars". The number 47 is not used: not found in the posts read. Task minutes reuse the drill set of Valle de la Luna. *Proposal.*
 
-## Still to make
+## Not made (left out of v1.0)
 
 `thermal.png`: the research found the THEMIS quantitative tile (`THEMIS_TI_Mosaic_Quant_30S120E_100mpp.cub`, 2.36 GB, Astropedia), but on 14 Nov 15:33 the Astropedia server did not answer in 2 minutes; at 100 m the square is only 10 x 10 pixels, context only (guion §5.1) · glTFast in Unity for the two `.glb` models. Valle de la Luna has no official 360° panorama (guion §5.1, row 3b): the app says "No panorama for this stop yet".

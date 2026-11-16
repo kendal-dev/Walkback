@@ -9,7 +9,7 @@ Usage, from the project root (GDAL from QGIS; set GDAL_BIN if it lives elsewhere
       --dem data-pipeline/cache/marstrek/gale_dem_window.tif
       --ortho data-pipeline/cache/ortho/gale_ortho_window.tif
       --waypoints data-pipeline/cache/waypoints/MSL_waypoints.json
-      --habitat 520,780 --out Assets/StreamingAssets/Site --work data-pipeline/cache/work
+      --habitat 514.8,777.0 --out Assets/StreamingAssets/Site --work data-pipeline/cache/work
       --report data-pipeline/reports/gale_controls.json
 
 Writes: site.json, heightmap.r16 (513 x 513), sand.png (257 x 257), ortho.jpg (4096 x 4096),
