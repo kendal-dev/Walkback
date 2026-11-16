@@ -10,16 +10,16 @@
   <link rel="icon" type="image/png" sizes="64x64" href="brand/favicon-64.png">
   <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
   <link rel="preload" href="vendor/fonts/satoshi-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20261115k">
-  <script src="intro.js?v=20261115k"></script>
+  <link rel="stylesheet" href="style.css?v=20261115n">
+  <script src="intro.js?v=20261115n"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
   </script>
-  <script src="sky.js?v=20261115k" defer></script>
-  <script type="module" src="hero.js?v=20261115k"></script>
-  <script type="module" src="app.js?v=20261115k"></script>
-  <script type="module" src="hud.js?v=20261115k"></script>
-  <script src="nav.js?v=20261115k" defer></script>
+  <script src="sky.js?v=20261115n" defer></script>
+  <script type="module" src="hero.js?v=20261115n"></script>
+  <script type="module" src="app.js?v=20261115n"></script>
+  <script type="module" src="hud.js?v=20261115n"></script>
+  <script src="nav.js?v=20261115n" defer></script>
 </head>
 <body>
   <!-- Opening animation: the visor boots and opens (style.css; intro.js only skips it). Decoration only. -->
@@ -47,7 +47,7 @@
     <!-- nav.js marks the section on screen (aria-current) and turns this into a menu on phones. -->
     <nav class="nav-links" id="nav-links" aria-label="Sections">
       <a href="#problem">Problem</a>
-      <a href="#map">Live map</a>
+      <a href="#map">Interactive map</a>
       <a href="#how">How it works</a>
       <a href="#pipeline">Science</a>
       <a href="#get">Headset</a>
@@ -147,7 +147,7 @@
     <!-- 3. Interactive map -->
     <section class="section" id="map">
       <div class="section-head">
-        <p class="eyebrow">Live map</p>
+        <p class="eyebrow">Interactive map</p>
         <h2>Can you still walk back?</h2>
         <p class="sub">1 km² of Gale Crater, Mars. Tap anywhere on the ground.</p>
       </div>
@@ -166,7 +166,7 @@
             <div id="loading" class="loading">Loading terrain…</div>
             <!-- Helmet-display frame: decoration only, never takes clicks. -->
             <span class="hud-corners" aria-hidden="true"></span>
-            <div class="hud-strip" aria-hidden="true"><span>Gale Crater · 1 km²</span><span class="hud-live">Live</span></div>
+            <div class="hud-strip" aria-hidden="true"><span>Gale Crater · 1 km²</span><span class="hud-live">HiRISE 1 m</span></div>
             <span id="test-badge" class="test-badge" hidden>Test data</span>
             <div id="hint" class="hint">Drag to turn · Ctrl + scroll to zoom · <b>Click the ground</b></div>
             <div id="tap-card" class="tap-card" role="status" aria-live="polite" hidden>
@@ -203,9 +203,10 @@
           <div id="verdict" class="verdict verdict-pending">
             <p class="panel-label">Verdict</p>
             <p class="verdict-word">Waiting for route</p>
-            <p class="verdict-text">From the same model the headset uses.</p>
+            <p class="verdict-text">From the same numbers the headset shows.</p>
+            <p class="verdict-estimate" id="verdict-estimate" hidden>ESTIMATE · plan B over the relief, not the team's walking model yet</p>
             <div class="kpis" id="kpis" hidden>
-              <div><span class="kpi" id="st-min">–</span><span class="kpi-label">walk</span></div>
+              <div><span class="kpi" id="st-min">–</span><span class="kpi-label">walk and work</span></div>
               <div><span class="kpi" id="st-o2">–</span><span class="kpi-label" id="st-o2-label">O₂ left at home</span></div>
               <div class="o2-bar" id="o2-bar" aria-hidden="true" hidden><span></span></div>
             </div>
@@ -267,7 +268,7 @@
         </li>
       </ol>
       <p class="plan-whatif"><b>What if the tank ran low?</b> With 15% of the tank the verdict turns NOT VIABLE; with 8%, the app paints red 57.5% of the ground that still has a way back on foot.</p>
-      <p class="plan-note">Stops, science and dates: NASA's Curiosity blog, at the rover's own positions. The map above still runs on test data; the headset app uses this plan.</p>
+      <p class="plan-note">Stops, science and dates: NASA's Curiosity blog, at the rover's own positions. The map above draws this same plan on the same relief the headset app uses.</p>
     </section>
 
     <!-- 3. How it works -->
@@ -301,7 +302,7 @@
       <div class="section-head">
         <p class="eyebrow">Science &amp; model</p>
         <h2>From orbit to litres of oxygen</h2>
-        <p class="sub">Open NASA data in, one decision out. Everything is worked out ahead of time, so the headset needs no signal.</p>
+        <p class="sub">Open NASA data in, one decision out. The relief is stored in the headset and everything is worked out there, so it needs no signal.</p>
       </div>
       <ol class="flow">
         <li class="flow-step">
@@ -319,20 +320,21 @@
           <p class="flow-tag">Over 20° · no-go</p>
         </li>
         <li class="flow-step">
-          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="The app's return layer: rings of equal walking time back to the habitat." loading="lazy">
+          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="Earlier build of the app's return layer: test rings of equal walking time around the habitat." loading="lazy">
           <span class="flow-n">03</span>
           <h3>257 × 257 return grid</h3>
           <p>For each of 66,049 cells, 3.9 m apart: the minutes and the litres of oxygen it takes to walk back to the habitat.</p>
-          <p class="flow-tag">return_map.bin · 516 KB · offline</p>
+          <p class="flow-tag">Computed in the headset · offline</p>
         </li>
         <li class="flow-step">
-          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="The route from the habitat to Nevado Sajama drawn over the relief, with contour lines." loading="lazy">
+          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="Earlier build: a test route from the habitat to Nevado Sajama drawn over the relief, with contour lines." loading="lazy">
           <span class="flow-n">04</span>
           <h3>A verdict on every step</h3>
           <p>The headset reads the cell under the astronaut's feet and warns before the point of no return, with no network.</p>
           <p class="flow-tag">Viable · Point of no return</p>
         </li>
       </ol>
+      <p class="shot-note">Pictures 03 and 04 are from an earlier build (14 Nov): straight-line test rings and a one-stop test route. The interactive map above shows the current return layer and the four-stop route.</p>
     </section>
 
     <!-- 6. What the astronaut sees: app screens, Enter VR, video and APK -->
@@ -429,11 +431,11 @@
         </details>
         <details class="faq-item">
           <summary>What does “live” mean?</summary>
-          <p>The calculation runs in the headset, with no signal: the minutes back to the habitat come from the map stored in the app. The weather is Curiosity's latest report, stored with its date; only the week's space-weather line can be read live from NASA DONKI when the headset has internet.</p>
+          <p>The calculation runs in the headset, with no signal: the minutes back to the habitat come from a return map the headset works out from the relief stored in the app. The weather is Curiosity's latest report, stored with its date; only the week's space-weather line can be read live from NASA DONKI when the headset has internet.</p>
         </details>
         <details class="faq-item">
           <summary>Are these numbers final?</summary>
-          <p>No. Every mission number is an estimate and says ESTIMATE on screen: the app uses a stand-in plan over the relief until the team's walking and oxygen model is in. The terrain itself is checked: its slopes match Curiosity's own tilt sensor within 2.0° on average.</p>
+          <p>No. Every mission number is an estimate and says ESTIMATE on screen: the app uses a stand-in plan over the relief until the team's walking and oxygen model is in. The terrain itself is checked: its slopes differ from Curiosity's own tilt sensor by 2.0° on average over 85 rover positions (r = 0.77, largest difference 21°).</p>
         </details>
       </div>
     </section>
@@ -452,7 +454,7 @@
         <h2 class="foot-title">Explore</h2>
         <ul class="foot-links">
           <li><a href="#problem">The problem</a></li>
-          <li><a href="#map">Live map</a></li>
+          <li><a href="#map">Interactive map</a></li>
           <li><a href="#how">How it works</a></li>
           <li><a href="#pipeline">Science &amp; model</a></li>
           <li><a href="#get">In the headset</a></li>

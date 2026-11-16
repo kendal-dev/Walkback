@@ -536,6 +536,7 @@ h1 { font-size: clamp(42px, 5.6vw, 74px); font-weight: 700; line-height: 1.02; l
 .verdict { padding-bottom: 18px; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
 .verdict-word { margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -.01em; line-height: 1.05; }
 .verdict-text { margin: 8px 0 0; color: var(--muted); font-size: 15px; }
+.verdict-estimate { margin: 10px 0 0; color: #ffd27a; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .verdict-ok .verdict-word { color: var(--safe); text-shadow: 0 0 24px rgba(62, 224, 154, .35); }
 .verdict-bad .verdict-word { color: var(--danger); font-size: 28px; text-shadow: 0 0 24px rgba(255, 90, 82, .35); }
 .verdict-pending .verdict-word { font-size: 22px; color: var(--muted); }
@@ -649,7 +650,8 @@ h1 { font-size: clamp(42px, 5.6vw, 74px); font-weight: 700; line-height: 1.02; l
 #map .verdict-ok { border-left-color: var(--app-green); }
 #map .verdict-bad { border-left-color: var(--app-red); }
 #map .verdict-word { font-weight: 900; text-transform: uppercase; text-shadow: none; }
-#map .verdict-ok .verdict-word { color: var(--app-green); }
+#map .verdict-estimate { margin: 10px 0 0; color: #ffd27a; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.verdict-ok .verdict-word { color: var(--app-green); }
 #map .verdict-bad .verdict-word { color: var(--app-red); }
 #map .verdict-text { color: #c4cad1; }
 #map .kpis > div { border-radius: 4px; background: rgba(255, 255, 255, .05); }

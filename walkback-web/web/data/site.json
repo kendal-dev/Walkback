@@ -1,33 +1,71 @@
 {
-  "name": "TODO test terrain (not Gale)",
-  "centerLat": -4.59,
-  "centerLon": 137.44,
-  "sideMeters": 1000,
-  "heightmapSize": 513,
-  "gridSize": 257,
-  "minElevation": -4495,
-  "maxElevation": -4431,
-  "habitat": {
-    "x": 250,
-    "y": 250
+ "name": "Gale crater boxwork",
+ "centerLat": -4.807,
+ "centerLon": 137.381,
+ "sideMeters": 1000.0,
+ "heightmapSize": 513,
+ "gridSize": 257,
+ "minElevation": -3721.456,
+ "maxElevation": -3492.944,
+ "habitat": {
+  "x": 514.8,
+  "y": 777.0
+ },
+ "crs": "Local meters from the south-west corner, x east, y north; equirectangular on the Mars 2000 sphere (R 3396190 m), true scale at -4.807, 137.381 E",
+ "sources": [
+  {
+   "layer": "elevation",
+   "mission": "Mars Reconnaissance Orbiter",
+   "instrument": "HiRISE stereo",
+   "resolution": "1 m",
+   "id": "Gale_DEM_SMG_1m",
+   "credit": "NASA/JPL Mars Trek, MRO HiRISE Gale Crater DEM 1 m; HiRISE images NASA/JPL/University of Arizona"
   },
-  "crs": "TODO",
-  "sources": [
-    {
-      "layer": "Elevation",
-      "mission": "TODO",
-      "instrument": "TODO",
-      "resolution": "TODO",
-      "id": "TODO",
-      "credit": "Invented test terrain. Real credits arrive with session B data."
-    },
-    {
-      "layer": "Orthoimage",
-      "mission": "TODO",
-      "instrument": "TODO",
-      "resolution": "TODO",
-      "id": "TODO",
-      "credit": "TODO"
-    }
-  ]
+  {
+   "layer": "ortho",
+   "mission": "Mars Reconnaissance Orbiter",
+   "instrument": "HiRISE",
+   "resolution": "25 cm",
+   "id": "MSL_Gale_Orthophoto_Mosaic_25cm_v3",
+   "credit": "Calef and Parker (2016), MSL Gale Merged Orthophoto Mosaic v3, USGS Astrogeology; HiRISE images NASA/JPL/University of Arizona"
+  },
+  {
+   "layer": "sand",
+   "mission": "Mars Reconnaissance Orbiter",
+   "instrument": "Not mapped (the 1 m elevation misses the hollows)",
+   "resolution": "none",
+   "id": "rock everywhere (eta 1.2)",
+   "credit": "Checked by Walkback against the HiRISE 25 cm photo; plan B of the team's plan"
+  },
+  {
+   "layer": "curiosity_traverse",
+   "mission": "Mars Science Laboratory",
+   "instrument": "Curiosity rover localization",
+   "resolution": "one point per drive",
+   "id": "MSL_waypoints.json",
+   "credit": "NASA/JPL-Caltech"
+  },
+  {
+   "layer": "globe",
+   "mission": "Viking",
+   "instrument": "Orbiter cameras (MDIM 2.1 colour mosaic)",
+   "resolution": "1 km per pixel, shown at 4096 x 2048",
+   "id": "mars_viking_mdim21_clrmosaic_1km",
+   "credit": "NASA/JPL/USGS"
+  },
+  {
+   "layer": "panorama",
+   "mission": "Mars Science Laboratory",
+   "instrument": "Mastcam (360° mosaic, sols 4714-4741)",
+   "resolution": "4096 x 2048 (sky and ground filled plain)",
+   "id": "PIA26696",
+   "credit": "NASA/JPL-Caltech/MSSS"
+  }
+ ],
+ "photoTint": {
+  "r": 164,
+  "g": 124,
+  "b": 100,
+  "source": "Median ground colour of Curiosity's Mastcam 360-degree mosaic at Nevado Sajama (PIA26696, NASA/JPL-Caltech/MSSS), 504 807 ground pixels below the horizon (data-pipeline/photo_tint.py); the HiRISE orthophoto mosaic is black and white"
+ }
 }
