@@ -66,9 +66,8 @@ export function planB(siteDir) {
     usedLiters: Math.round(P.usedLiters), usedPercent: Math.round(P.usedPercent), spareLiters: Math.round(P.spareLiters),
     viable: P.viable, redAt15: round(w15.redPercent, 1), redAt8: round(w8.redPercent, 1),
   };
-  const want = { walkMeters: 1812, walk: "43 min", work: "2 h 12 min", total: "2 h 55 min", usedLiters: 181, usedPercent: 36, spareLiters: 285, viable: true, redAt15: 0 };
+  const want = { walkMeters: 1812, walk: "43 min", work: "2 h 12 min", total: "2 h 55 min", usedLiters: 181, usedPercent: 36, spareLiters: 285, viable: true, redAt15: 0, redAt8: 57.5 };
   const off = Object.keys(want).filter((key) => numbers[key] !== want[key]).map((key) => `${key}: ${numbers[key]} (the app: ${want[key]})`);
-  if (Math.abs(numbers.redAt8 - 57.5) > 2) off.push(`redAt8: ${numbers.redAt8} (the app: 57.5)`);
   if (off.length) throw new Error("plan B numbers differ from the app's:\n    " + off.join("\n    "));
 
   // Route points with the clock and the tank at each one. Inside a leg the minutes are spread by distance.

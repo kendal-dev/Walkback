@@ -75,6 +75,7 @@ function normalizeRoute(r) {
     capacity: Number.isFinite(capacity) && capacity > 0 ? capacity : null,
     reserve: Number.isFinite(reserve) && reserve > 0 ? reserve : 0, // litres kept untouched, as in the headset
     estimate: r.estimate === true, // plan B over the relief, not the walking model yet
+    used: num(r.usedLiters), // litres the whole plan needs (walking and work)
   };
 }
 
@@ -539,9 +540,14 @@ async function main() {
         const share = paint(budget.liters);
         overlay.visible = true;
         const kept = route.reserve ? `, ${Math.round(route.reserve)} L of it kept as reserve` : "";
-        note.textContent = share > 0
+        // The panel keeps the full-tank plan; say what the headset's verdict is for this tank.
+        const short = Number.isFinite(route.used) && route.used > budget.liters;
+        const plan = short
+          ? ` The planned walk no longer fits (it needs ${Math.round(route.used)} L): the headset's verdict turns NOT VIABLE. The panel still shows the full-tank plan.`
+          : " The panel still shows the full-tank plan.";
+        note.textContent = (share > 0
           ? `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), red is ground you could no longer walk back from: ${(share * 100).toFixed(1)}% of the ground that has a way back on foot.`
-          : `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), every place that has a way back on foot is still in reach.`;
+          : `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), no ground turns red yet: you could still walk straight back from anywhere that has a way back.`) + plan;
       }
       $("legend-whatif").hidden = !overlay.visible;
       if (tapMarker.visible && lastTap) showTap(lastTap.x, lastTap.y);
@@ -726,6 +732,7 @@ function renderCredits(sources) {
   const real = (v) => v && !/^(TODO|—|-)$/i.test(String(v).trim());
   const list = Array.isArray(sources) ? sources : [];
   for (const s of list) {
+    if (/^none$/i.test(String(s.resolution ?? "").trim())) continue; // a layer the package says is not mapped: nothing to credit
     const li = el("li");
     li.append(el("strong", "", s.layer ?? "Layer"));
     const meta = [s.mission, s.instrument, s.resolution].filter(real).join(" · ");

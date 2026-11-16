@@ -10,16 +10,16 @@
   <link rel="icon" type="image/png" sizes="64x64" href="brand/favicon-64.png">
   <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
   <link rel="preload" href="vendor/fonts/satoshi-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20261115m">
-  <script src="intro.js?v=20261115m"></script>
+  <link rel="stylesheet" href="style.css?v=20261115n">
+  <script src="intro.js?v=20261115n"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
   </script>
-  <script src="sky.js?v=20261115m" defer></script>
-  <script type="module" src="hero.js?v=20261115m"></script>
-  <script type="module" src="app.js?v=20261115m"></script>
-  <script type="module" src="hud.js?v=20261115m"></script>
-  <script src="nav.js?v=20261115m" defer></script>
+  <script src="sky.js?v=20261115n" defer></script>
+  <script type="module" src="hero.js?v=20261115n"></script>
+  <script type="module" src="app.js?v=20261115n"></script>
+  <script type="module" src="hud.js?v=20261115n"></script>
+  <script src="nav.js?v=20261115n" defer></script>
 </head>
 <body>
   <!-- Opening animation: the visor boots and opens (style.css; intro.js only skips it). Decoration only. -->
@@ -302,7 +302,7 @@
       <div class="section-head">
         <p class="eyebrow">Science &amp; model</p>
         <h2>From orbit to litres of oxygen</h2>
-        <p class="sub">Open NASA data in, one decision out. Everything is worked out ahead of time, so the headset needs no signal.</p>
+        <p class="sub">Open NASA data in, one decision out. The relief is stored in the headset and everything is worked out there, so it needs no signal.</p>
       </div>
       <ol class="flow">
         <li class="flow-step">
@@ -320,20 +320,21 @@
           <p class="flow-tag">Over 20° · no-go</p>
         </li>
         <li class="flow-step">
-          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="The app's return layer: rings of equal walking time back to the habitat." loading="lazy">
+          <img class="flow-img" src="media/flow-return.jpg" width="640" height="400" alt="Earlier build of the app's return layer: test rings of equal walking time around the habitat." loading="lazy">
           <span class="flow-n">03</span>
           <h3>257 × 257 return grid</h3>
           <p>For each of 66,049 cells, 3.9 m apart: the minutes and the litres of oxygen it takes to walk back to the habitat.</p>
-          <p class="flow-tag">return_map.bin · 516 KB · offline</p>
+          <p class="flow-tag">Computed in the headset · offline</p>
         </li>
         <li class="flow-step">
-          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="The route from the habitat to Nevado Sajama drawn over the relief, with contour lines." loading="lazy">
+          <img class="flow-img" src="media/flow-route.jpg" width="640" height="400" alt="Earlier build: a test route from the habitat to Nevado Sajama drawn over the relief, with contour lines." loading="lazy">
           <span class="flow-n">04</span>
           <h3>A verdict on every step</h3>
           <p>The headset reads the cell under the astronaut's feet and warns before the point of no return, with no network.</p>
           <p class="flow-tag">Viable · Point of no return</p>
         </li>
       </ol>
+      <p class="shot-note">Pictures 03 and 04 are from an earlier build (14 Nov): straight-line test rings and a one-stop test route. The interactive map above shows the current return layer and the four-stop route.</p>
     </section>
 
     <!-- 6. What the astronaut sees: app screens, Enter VR, video and APK -->
@@ -430,7 +431,7 @@
         </details>
         <details class="faq-item">
           <summary>What does “live” mean?</summary>
-          <p>The calculation runs in the headset, with no signal: the minutes back to the habitat come from the map stored in the app. The weather is Curiosity's latest report, stored with its date; only the week's space-weather line can be read live from NASA DONKI when the headset has internet.</p>
+          <p>The calculation runs in the headset, with no signal: the minutes back to the habitat come from a return map the headset works out from the relief stored in the app. The weather is Curiosity's latest report, stored with its date; only the week's space-weather line can be read live from NASA DONKI when the headset has internet.</p>
         </details>
         <details class="faq-item">
           <summary>Are these numbers final?</summary>

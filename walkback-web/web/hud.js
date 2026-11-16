@@ -26,9 +26,9 @@ export function render() {
   const chip = $("hud-chip");
   const bar = $("o2-bar");
 
-  // #st-min is the whole walk, not the point of no return, so the "bad" chip carries no number.
+  // #st-min is the whole mission (walking and work), not the point of no return, so the "bad" chip carries no number.
   const text = state === "ok"
-    ? ["Return path", minutes, o2 !== null && `${o2}% O₂`].filter(Boolean).join(" · ")
+    ? ["Whole mission", minutes, o2 !== null && `${o2}% O₂ left`].filter(Boolean).join(" · ")
     : state === "bad" ? "No return on this route" : "Checking return path…";
   if (chip.textContent !== text) chip.textContent = text;
   chip.dataset.state = state;

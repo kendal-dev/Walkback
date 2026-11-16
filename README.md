@@ -119,7 +119,7 @@ python -m http.server 8137 --directory walkback-web/web
 node walkback-web/web/tools/check_web.mjs
 ```
 
-Then open http://localhost:8137. The live map runs on test terrain until `walkback-web/web/tools/build_data.mjs` copies the Gale site package into `web/data/` (it needs `git lfs pull` first); the page shows a TEST DATA badge meanwhile.
+Then open http://localhost:8137. The interactive map draws the app's Gale site package and its plan B route (marked ESTIMATE), already committed in `walkback-web/web/data/`; to rebuild it after the site package changes, run `git lfs pull` and `node walkback-web/web/tools/build_data.mjs`.
 
 ---
 
