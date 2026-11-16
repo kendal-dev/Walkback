@@ -10,16 +10,16 @@
   <link rel="icon" type="image/png" sizes="64x64" href="brand/favicon-64.png">
   <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
   <link rel="preload" href="vendor/fonts/satoshi-variable.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20261115n">
-  <script src="intro.js?v=20261115n"></script>
+  <link rel="stylesheet" href="style.css?v=20261115o">
+  <script src="intro.js?v=20261115o"></script>
   <script type="importmap">
     { "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
   </script>
-  <script src="sky.js?v=20261115n" defer></script>
-  <script type="module" src="hero.js?v=20261115n"></script>
-  <script type="module" src="app.js?v=20261115n"></script>
-  <script type="module" src="hud.js?v=20261115n"></script>
-  <script src="nav.js?v=20261115n" defer></script>
+  <script src="sky.js?v=20261115o" defer></script>
+  <script type="module" src="hero.js?v=20261115o"></script>
+  <script type="module" src="app.js?v=20261115o"></script>
+  <script type="module" src="hud.js?v=20261115o"></script>
+  <script src="nav.js?v=20261115o" defer></script>
 </head>
 <body>
   <!-- Opening animation: the visor boots and opens (style.css; intro.js only skips it). Decoration only. -->
@@ -31,7 +31,7 @@
         <img class="intro-logo" src="brand/walkback-logo-480.png" width="180" height="180" alt="">
       </div>
       <ul class="intro-lines">
-        <li>Gale crater · 4.807° S · 137.381° E</li>
+        <li>Site 1 km² · 4.807° S · 137.381° E</li>
         <li>Loading terrain</li>
         <li>Loading the way back</li>
         <li class="intro-ok">Ready to walk</li>
@@ -112,7 +112,7 @@
         <!-- Zoom to Gale (hero.js, all in 3D): HUD reticle and the crater's name over the dive. -->
         <div class="gale-hud" id="gale-hud" aria-hidden="true">
           <span class="gale-reticle"></span>
-          <p class="gale-label" id="gale-label"><b>Gale crater</b><span>5.4° S · 137.8° E · Curiosity's home</span></p>
+          <p class="gale-label" id="gale-label"><b>Gale crater</b><span>Crater centre 5.4° S · 137.8° E · Curiosity's home</span></p>
         </div>
         <button class="gale-btn" id="gale-btn" type="button" hidden>Zoom to Gale</button>
       </div>
@@ -350,7 +350,7 @@
           <figcaption><span class="shot-tag shot-ok">Viable</span>The whole walk fits, with oxygen to spare.</figcaption>
         </figure>
         <figure class="shot">
-          <a href="media/headset-not-viable.jpg" target="_blank" rel="noopener"><img src="media/headset-not-viable.jpg" width="900" height="430" alt="Headset panel showing the verdict NOT VIABLE in red, with the point of no return before the second stop." loading="lazy"></a>
+          <a href="media/headset-not-viable.jpg" target="_blank" rel="noopener"><img src="media/headset-not-viable.jpg" width="900" height="430" alt="Headset panel showing the verdict NOT VIABLE in red, with the point of no return before the last stop." loading="lazy"></a>
           <figcaption><span class="shot-tag shot-bad">Not viable</span>The point of no return comes before the last stop.</figcaption>
         </figure>
         <figure class="shot">
@@ -359,11 +359,11 @@
         </figure>
         <figure class="shot">
           <a href="media/headset-route.jpg" target="_blank" rel="noopener"><img src="media/headset-route.jpg" width="1200" height="676" alt="The relief of Gale crater with contour lines, the habitat and the route to the Nevado Sajama stop." loading="lazy"></a>
-          <figcaption><span class="shot-tag">Route</span>The route over the real relief, seen from the habitat.</figcaption>
+          <figcaption><span class="shot-tag">Route</span>The route over the real relief.</figcaption>
         </figure>
         <figure class="shot shot-wide">
           <a href="media/sajama-360.jpg" target="_blank" rel="noopener"><img src="media/sajama-360.jpg" width="1600" height="505" alt="Curiosity's Mastcam panorama at Nevado Sajama: layered rock and sand on the slopes of Mount Sharp." loading="lazy"></a>
-          <figcaption><span class="shot-tag">Jump to site</span>At a stop, the astronaut stands inside Curiosity's 360° photo of it. Nevado Sajama, Mastcam mosaic PIA26696 (NASA/JPL-Caltech/MSSS).</figcaption>
+          <figcaption><span class="shot-tag">360° photo</span>At a stop, the astronaut stands inside Curiosity's 360° photo of it. Nevado Sajama, Mastcam mosaic PIA26696 (NASA/JPL-Caltech/MSSS).</figcaption>
         </figure>
       </div>
       <p class="shot-note">App screens from an earlier build (14 Nov), captured by its automatic test in the Unity editor; the numbers on them are test values, as the screens themselves say. The panorama is NASA's real Mastcam photo.</p>
@@ -447,7 +447,7 @@
         <img class="foot-logo" src="brand/walkback-logo-480.png" width="132" height="132" alt="Walkback">
         <p class="foot-tagline">The safest way to go far.</p>
         <!-- Centre of the 1 km² site (site.json of the Gale package). -->
-        <p class="foot-coords"><span>Gale crater, Mars</span><span>4.807° S · 137.381° E</span></p>
+        <p class="foot-coords"><span>Gale crater, Mars</span><span>1 km² site centre</span><span>4.807° S · 137.381° E</span></p>
       </div>
 
       <nav class="foot-col" aria-label="Footer">
