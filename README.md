@@ -78,7 +78,7 @@ How plan B works: each leg is the fastest way over the relief (Dijkstra on the e
 
 | Piece | Automatic test (no headset) | Seen in the Quest 3 |
 |---|---|---|
-| Gale terrain and the four layers | Passes | Yes (15 Nov, the release candidate build, 72 fps) |
+| Gale terrain and the four layers | Passes | Yes (15 Nov, the build of 01:37, 72 fps) |
 | Pointer, table, globe and jump into the 360° photo | Passes | Yes (15 Nov, 72 fps, with hand tracking) |
 | Verdict board and charts, START MISSION | Passes | Yes (15 Nov) |
 | Route over the relief (plan B) | Passes | Yes, on the table (15 Nov) |
@@ -88,7 +88,7 @@ How plan B works: each leg is the fastest way over the relief (Dijkstra on the e
 | WHAT IF (tank at 15 % and 8 %) | Passes | Not yet in this build (it needs the controllers); seen on 14 Nov with an earlier build |
 | Current conditions card | Passes | Yes: the space-weather line was read from NASA DONKI at start and marked "(live)" (15 Nov, 03:28 local time) |
 
-This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) with the build of 01:37, the candidate for the release, read from the app's own log. With the controllers still to try: the WHAT IF in this build, the jumps, the arrival card, RECENTER, the menu button and TURN BACK NOW.
+This table is what the team saw on 15 Nov between 03:28 and 03:54 (local time) with the build of 01:37 (from commit `7addfa2`), read from the app's own log. The APK in the [v1.0-submission release](https://github.com/kendal-dev/Walkback/releases/tag/v1.0-submission) was built later the same day, at 09:06, from commit `ee833af`: between those two commits no file under `Assets/`, `ProjectSettings/` or `Packages/` changed (only the presentation and the documentation), so it is the same app code as the build in this table. With the controllers still to try: the WHAT IF in this build, the jumps, the arrival card, RECENTER, the menu button and TURN BACK NOW.
 
 ---
 
@@ -99,10 +99,10 @@ https://kendal-dev.github.io/Walkback/
 `walkback-web/web/` is a static page for the jury and anyone without a headset: it opens in a phone or laptop browser and works offline (three.js and the fonts are copied in `vendor/`, nothing is loaded from the internet).
 
 <p align="center">
-  <img src="walkback-web/readme/landing-live-map.jpg" alt="The live map: a 3D square of terrain with the SLOPE layer in blue, orange and hatched, the route to three stops, and the verdict panel saying VIABLE." width="100%">
+  <img src="walkback-web/readme/landing-live-map.jpg" alt="The live map: the real Gale square kilometre in 3D, the route through the four Curiosity drill sites, and the verdict panel saying VIABLE (ESTIMATE)." width="100%">
 </p>
 
-- **Live map.** The square kilometre in 3D, with the headset's own layers and colours: HEIGHT (contour lines every 10 m), SLOPE (under 10° blue, 10–20° orange, over 20° hatched as no-go) and RETURN ON FOOT (minutes back to the habitat, a ring every few minutes). Tap the ground for the minutes and the oxygen back to the habitat; the verdict panel copies the headset's mission panel.
+- **Live map.** The real Gale square kilometre in 3D (real Gale data, plan B numbers marked ESTIMATE), with the headset's own layers and colours: HEIGHT (contour lines every 10 m), SLOPE (under 10° blue, 10–20° orange, over 20° hatched as no-go) and RETURN ON FOOT (minutes back to the habitat, a ring every few minutes). Tap the ground for the minutes and the oxygen back to the habitat; the verdict panel copies the headset's mission panel.
 - **What if the tank ran low?** The same check as the headset's WHAT IF: with 15 % or 8 % of the tank, the ground you could no longer walk back from turns red. The page compares the return map's litres with the smaller tank; it computes no route or time of its own.
 - **Zoom to Gale.** The hero's 3D Mars turns Gale crater to the front, swings below the planet and raises a pillar of light on the crater, then comes back. A small 3D rocket orbits the planet and hides behind it.
 - **Enter VR.** In the Meta Quest browser, the page stands you at the habitat in Gale at real scale (WebXR).
