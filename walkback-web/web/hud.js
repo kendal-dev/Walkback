@@ -26,6 +26,15 @@ export function render() {
   const chip = $("hud-chip");
   const bar = $("o2-bar");
 
+  // During a WHAT IF the card shows that tank's verdict while #st-min / #st-o2 stay the full-tank plan: name the scenario, hide the bar.
+  const whatif = $("verdict").dataset.whatif;
+  if (whatif) {
+    const t = `What if ${whatif}% tank · ${state === "bad" ? "walk no longer fits" : "walk still fits"} · estimate`;
+    if (chip.textContent !== t) chip.textContent = t;
+    chip.dataset.state = state;
+    bar.hidden = true;
+    return;
+  }
   // #st-min is the whole mission (walking and work), not the point of no return, so the "bad" chip carries no number.
   const text = state === "ok"
     ? ["Whole mission", minutes, o2 !== null && `${o2}% O₂ left`, "estimate"].filter(Boolean).join(" · ")
@@ -43,5 +52,5 @@ export function render() {
 
 render();
 new MutationObserver(render).observe($("verdict"), {
-  subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class"],
+  subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "data-whatif"],
 });

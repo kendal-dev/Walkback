@@ -581,6 +581,7 @@ async function main() {
         budget = null;
         overlay.visible = false;
         note.textContent = "As planned: the panel shows the whole walk with a full tank.";
+        showTankOnCard(null);
       } else {
         // What is left to walk with: the tank at this level minus the reserve (the headset's rule).
         const tank = (capacity * pct) / 100;
@@ -588,11 +589,12 @@ async function main() {
         const share = paint(budget.liters);
         overlay.visible = true;
         const kept = route.reserve ? `, ${Math.round(route.reserve)} L of it kept as reserve` : "";
-        // The panel keeps the full-tank plan; say what the headset's verdict is for this tank.
+        // The verdict card now follows the chosen tank (the headset's rule); times and steps stay the full-tank plan.
         const short = Number.isFinite(route.used) && route.used > budget.liters;
+        showTankOnCard(Number.isFinite(route.used) ? { pct, tank, liters: budget.liters, used: route.used, short } : null);
         const plan = short
-          ? ` The planned walk no longer fits (it needs ${Math.round(route.used)} L): the headset's verdict turns NOT VIABLE. The panel still shows the full-tank plan.`
-          : " The panel still shows the full-tank plan.";
+          ? ` The planned walk no longer fits (it needs ${Math.round(route.used)} L): the verdict turns NOT VIABLE.`
+          : " The planned walk still fits.";
         note.textContent = (share > 0
           ? `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), red is ground you could no longer walk back from: ${(share * 100).toFixed(1)}% of the ground that has a way back on foot.`
           : `With ${pct}% of the tank left (${Math.round(tank)} L${kept}), no ground turns red yet: you could still walk straight back from anywhere that has a way back.`) + plan;
@@ -776,6 +778,34 @@ function renderRoutePanel(route, stopById) {
   });
   if (route.pnr) row("!", "pnr", "Point of no return", route.pnr);
   row("H", "home", route.viable ? "Back at the habitat" : "End of route", last);
+}
+
+// WHAT IF on the verdict card: s = null puts back the full-tank plan; else the card shows that tank's verdict.
+// It only compares numbers already on the page (the route's oxygen use and the tank minus the reserve).
+function showTankOnCard(s) {
+  const box = $("verdict");
+  const word = box.querySelector(".verdict-word");
+  const text = box.querySelector(".verdict-text");
+  if (!box.dataset.planWord) {
+    box.dataset.planWord = word.textContent;
+    box.dataset.planText = text.textContent;
+    box.dataset.planCls = box.classList.contains("verdict-ok") ? "verdict-ok" : box.classList.contains("verdict-bad") ? "verdict-bad" : "";
+  }
+  box.classList.remove("verdict-ok", "verdict-bad");
+  if (!s) {
+    delete box.dataset.whatif;
+    if (box.dataset.planCls) box.classList.add(box.dataset.planCls);
+    word.textContent = box.dataset.planWord;
+    text.textContent = box.dataset.planText;
+    return;
+  }
+  box.dataset.whatif = String(s.pct);
+  box.classList.add(s.short ? "verdict-bad" : "verdict-ok");
+  word.textContent = s.short ? "NOT VIABLE" : "VIABLE";
+  const head = `WHAT IF ${s.pct}% of the tank is left (${Math.round(s.tank)} L): `;
+  text.textContent = head + (s.short
+    ? `the planned walk needs ${Math.round(s.used)} L and only ${Math.round(s.liters)} L can be used above the reserve. Do not start it. Times and steps below are the full-tank plan.`
+    : `the planned walk still fits (${Math.round(s.used)} L of ${Math.round(s.liters)} L above the reserve). Times and steps below are the full-tank plan.`);
 }
 
 function renderCredits(sources) {
