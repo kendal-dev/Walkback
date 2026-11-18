@@ -52,6 +52,25 @@ namespace Walkback
             return "Work: " + Minutes(stop).ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " min · your estimate";
         }
 
+        /// <summary>
+        /// v1.1: the colour of a stop's mark on the visor's and the wrist's maps: blue for a picked stop (as its
+        /// pillar), the material's own amber for the data's (an empty block).
+        /// </summary>
+        public static void TintMark(Renderer mark, StopInfo stop)
+        {
+            if (mark == null) return;
+            if (!IsUser(stop)) { mark.SetPropertyBlock(null); return; }
+            TintMark(mark, StopPillars.UserStopColor);
+        }
+
+        public static void TintMark(Renderer mark, Color color)
+        {
+            var block = new MaterialPropertyBlock();
+            block.SetColor("_BaseColor", color);
+            block.SetColor("_Color", color);
+            mark.SetPropertyBlock(block);
+        }
+
         public static bool IsUser(StopInfo stop)
         {
             return stop != null && stop.id != null && stop.id.StartsWith(IdPrefix);

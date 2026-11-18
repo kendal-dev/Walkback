@@ -108,6 +108,10 @@ namespace Walkback
         float preparedSide;
 
         readonly List<Transform> stopPins = new List<Transform>();
+        Transform turnBackPin;
+        /// <summary>v1.1: the red pin at the plan's point of no return (null until the first Prepare).</summary>
+        public Transform TurnBackPin { get { return turnBackPin; } }
+        public IList<Transform> StopPins { get { return stopPins; } }
 
         /// <summary>
         /// Which way the astronaut looks, in degrees clockwise from north: the you-pin turns and shows its
@@ -143,8 +147,20 @@ namespace Walkback
             {
                 bool used = i < stops.Length;
                 stopPins[i].gameObject.SetActive(used);
-                if (used) Pin(stopPins[i], site, new Vector2(stops[i].x, stops[i].y), 16f);
+                if (used)
+                {
+                    Pin(stopPins[i], site, new Vector2(stops[i].x, stops[i].y), 16f);
+                    UserStops.TintMark(stopPins[i].GetComponent<Renderer>(), stops[i]);
+                }
             }
+            // v1.1: the plan's point of no return, as a red pin.
+            if (turnBackPin == null)
+            {
+                turnBackPin = MakePin("TurnBackPin");
+                UserStops.TintMark(turnBackPin.GetComponent<Renderer>(), StopPillars.TurnBackColor);
+            }
+            turnBackPin.gameObject.SetActive(app.TurnBack.found);
+            if (app.TurnBack.found) Pin(turnBackPin, site, app.TurnBack.point, 16f);
             if (label != null) label.SetLines("YOU  ·  " + hereName);
         }
 

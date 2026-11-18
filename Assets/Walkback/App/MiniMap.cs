@@ -96,9 +96,21 @@ namespace Walkback
             while (stopDots.Count < stops.Length) stopDots.Add(MakeDot("Stop" + stopDots.Count, stopMaterial, 0.009f));
             for (int i = 0; i < stopDots.Count; i++)
             {
-                if (i < stops.Length) Place(stopDots[i], new Vector2(stops[i].x, stops[i].y), 0.004f);
+                if (i < stops.Length)
+                {
+                    Place(stopDots[i], new Vector2(stops[i].x, stops[i].y), 0.004f);
+                    UserStops.TintMark(stopDots[i].GetComponent<Renderer>(), stops[i]);
+                }
                 else stopDots[i].gameObject.SetActive(false);
             }
+            // v1.1: the plan's point of no return, as a red dot.
+            if (turnBackDot == null)
+            {
+                turnBackDot = MakeDot("TurnBack", stopMaterial, 0.011f);
+                UserStops.TintMark(turnBackDot.GetComponent<Renderer>(), StopPillars.TurnBackColor);
+            }
+            if (app.TurnBack.found) Place(turnBackDot, app.TurnBack.point, 0.0045f);
+            else turnBackDot.gameObject.SetActive(false);
             Place(nextRing, next, 0.0025f);
             Place(you, here, 0.005f);
 
@@ -134,6 +146,11 @@ namespace Walkback
             t.gameObject.SetActive(inside);
             if (inside) t.localPosition = LocalOf(meters, lift);
         }
+
+        Transform turnBackDot;
+        /// <summary>v1.1: the red dot at the plan's point of no return (null until the first Show).</summary>
+        public Transform TurnBackDot { get { return turnBackDot; } }
+        public IList<Transform> StopDots { get { return stopDots; } }
 
         Transform MakeDot(string name, Material material, float size)
         {

@@ -87,3 +87,4 @@ Work on the next version, kept on the branch `v1.1` so that `main`, the release 
 - **REMOVE, the ground card and planning on a worker thread** (Claude Code, Opus 5.5; directed by the team, checked by the automatic test).
 - **The point of no return on the map** (Claude Code, Opus 5.5; the team's rule from the verdict, applied point by point; checked by the automatic test).
 - **Picked stops kept between sessions, and the visor's distance to the point of no return** (Claude Code, Opus 5.5; checked by the automatic test).
+- **Picked stops and the point of no return on the visor's and the wrist's maps, a mission test with a picked stop, and the README note for the branch** (Claude Code, Opus 5.5).

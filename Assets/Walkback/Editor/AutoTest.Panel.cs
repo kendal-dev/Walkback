@@ -27,6 +27,7 @@ namespace Walkback.EditorTools
             CheckUserStopsFile(app, panel);
             CheckSuits(app, panel);
             CheckTurnBack(app, panel);
+            CheckMissionWithMyStop(app, panel);
         }
 
         /// <summary>
