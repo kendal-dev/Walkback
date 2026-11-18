@@ -37,6 +37,20 @@ namespace Walkback
         public static readonly Color StopColor = WalkbackTheme.Watch;
         public static readonly Color HabitatColor = WalkbackTheme.Safe;
         public static readonly Color UserStopColor = WalkbackTheme.Live;
+        /// <summary>v1.1: the point of no return of a plan that does not fit its tank.</summary>
+        public static readonly Color TurnBackColor = WalkbackTheme.Danger;
+        public const string TurnBackText = "TURN BACK BY HERE";
+        /// <summary>The red pillar at the point of no return, or null when the plan fits.</summary>
+        public PillarView TurnBack { get; private set; }
+        /// <summary>
+        /// When the point of no return is at a pillar (a stop whose work no longer fits), the red pillar has no
+        /// label of its own: that pillar's tag line says TURN BACK HERE in red instead (a second label there
+        /// pushed the labels up over the main board's texts). This is that tag line, or null.
+        /// </summary>
+        public Text TurnBackTagOnPillar { get; private set; }
+        string hostTagWas;
+        Color hostTagColorWas;
+        public const string TurnBackHereText = "TURN BACK HERE";
 
         readonly List<PillarView> stops = new List<PillarView>();
         public PillarView Habitat { get; private set; }
@@ -56,6 +70,8 @@ namespace Walkback
             for (int i = transform.childCount - 1; i >= 0; i--) DestroySafe(transform.GetChild(i).gameObject);
             stops.Clear();
             Habitat = null;
+            TurnBack = null;
+            TurnBackTagOnPillar = null;
             if (app == null || app.terrain == null || app.terrain.Site == null) return;
 
             SiteData site = app.terrain.Site;
@@ -98,6 +114,56 @@ namespace Walkback
         {
             if (Habitat != null) Habitat.SetGrowth(value);
             foreach (var p in stops) p.SetGrowth(value);
+            if (TurnBack != null) TurnBack.SetGrowth(value);
+        }
+
+        /// <summary>
+        /// Puts the red TURN BACK BY HERE pillar at a point of the map (local meters), with a line under the
+        /// name, or takes it away (null). Not pressable. Rebuilt with every plan.
+        /// </summary>
+        public void ShowTurnBack(Vector2? meters, string tag, string tankText)
+        {
+            if (TurnBack != null) { DestroySafe(TurnBack.gameObject); TurnBack = null; }
+            if (TurnBackTagOnPillar != null)
+            {
+                TurnBackTagOnPillar.text = hostTagWas;
+                TurnBackTagOnPillar.color = hostTagColorWas;
+                TurnBackTagOnPillar = null;
+            }
+            if (meters == null || app == null || app.terrain == null || app.terrain.Site == null) return;
+            Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            // A little wider than a stop's beam: when the point of no return is a stop (its work no longer fits),
+            // the red shows around the amber.
+            TurnBack = MakePillar(app.terrain.Site, meters.Value, TurnBackText, -2, TurnBackColor, StopRadiusMeters * 1.6f, font, tag);
+            // Its label goes one step above any label of a pillar near it, so the two never cover each other.
+            int highest = -1;
+            PillarView host = null;
+            float hostMeters = float.MaxValue;
+            var near = new List<PillarView>(stops);
+            if (Habitat != null) near.Add(Habitat);
+            foreach (var p in near)
+            {
+                float d = Vector3.Distance(p.transform.localPosition, TurnBack.transform.localPosition);
+                if (d >= LabelSpacingMeters) continue;
+                highest = Mathf.Max(highest, p.labelStack);
+                Transform tagLine = p.labelRoot != null ? p.labelRoot.Find("Tag") : null;
+                if (tagLine != null && d < hostMeters) { host = p; hostMeters = d; }
+            }
+            if (host != null)
+            {
+                // At a pillar with a tag line: say it there, in red, and give the red pillar no label.
+                DestroySafe(TurnBack.labelRoot.gameObject);
+                TurnBack.labelRoot = null;
+                TurnBack.label = null;
+                TurnBack.labelBox = null;
+                TurnBackTagOnPillar = host.labelRoot.Find("Tag").GetComponent<Text>();
+                hostTagWas = TurnBackTagOnPillar.text;
+                hostTagColorWas = TurnBackTagOnPillar.color;
+                TurnBackTagOnPillar.text = TurnBackHereText + " · " + tankText;
+                TurnBackTagOnPillar.color = TurnBackColor;
+            }
+            else TurnBack.labelStack = highest + 1;
+            TurnBack.SetGrowth(1f);
         }
 
         /// <summary>A label goes up this many steps at most to get clear of the labels in front of it.</summary>
@@ -120,6 +186,7 @@ namespace Walkback
             all.Clear();
             if (Habitat != null) all.Add(Habitat);
             all.AddRange(stops);
+            if (TurnBack != null) all.Add(TurnBack);
             int count = all.Count;
             if (viewStacks.Length != count) viewStacks = new int[count];
             foreach (var p in all)
@@ -247,9 +314,9 @@ namespace Walkback
             return best;
         }
 
-        PillarView MakePillar(SiteData site, Vector2 meters, string name, int index, Color color, float radius, Font font)
+        PillarView MakePillar(SiteData site, Vector2 meters, string name, int index, Color color, float radius, Font font, string tagOverride = null)
         {
-            var root = new GameObject(index < 0 ? "Pillar_Habitat" : "Pillar_" + index);
+            var root = new GameObject(index == -2 ? "Pillar_TurnBack" : index < 0 ? "Pillar_Habitat" : "Pillar_" + index);
             root.transform.SetParent(transform, false);
             Vector3 basePoint = RouteGeometry.ToMap(site, meters, 0f);
             root.transform.localPosition = basePoint;
@@ -283,7 +350,7 @@ namespace Walkback
                 pillar.hit = capsule;
             }
 
-            MakeLabel(pillar, name, index >= 0 && index < site.Stops.Length ? site.Stops[index].tag : null, font);
+            MakeLabel(pillar, name, tagOverride ?? (index >= 0 && index < site.Stops.Length ? site.Stops[index].tag : null), font);
             pillar.Refresh();
             return pillar;
         }

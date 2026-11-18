@@ -25,6 +25,7 @@ namespace Walkback.EditorTools
             CheckPanelTextFits(panel);
             CheckUserStops(app, panel);
             CheckSuits(app, panel);
+            CheckTurnBack(app, panel);
         }
 
         /// <summary>
@@ -421,6 +422,7 @@ namespace Walkback.EditorTools
             string covered = "";
             var views = new List<PillarView> { pillars.Habitat };
             views.AddRange(pillars.Stops);
+            if (pillars.TurnBack != null && pillars.TurnBack.labelRoot != null) views.Add(pillars.TurnBack);
             var plane = new Plane(canvas.forward, canvas.position);
             Rect canvasRect = ((RectTransform)canvas).rect;
             var labelCorners = new Vector3[4];
@@ -830,6 +832,7 @@ namespace Walkback.EditorTools
 
             // 8 to 10 (v1.1). A stop picked on the map with 15 minutes of work, its card, and a preview of another stop.
             ShotsUserStops(app, panel, cam, panelEye);
+            ShotTurnBack(app, cam, panelEye);
 
             app.ClearPlannedRoute();
             panel.ShowNoRoute();

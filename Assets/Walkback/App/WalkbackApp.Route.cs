@@ -52,13 +52,21 @@ namespace Walkback
             }
         }
 
+        /// <summary>v1.1: the current plan's point of no return (found = false when the plan fits its tank).</summary>
+        public TurnBackPoint.Result TurnBack { get; private set; }
+
         void ApplyPlan(MissionFallback.Plan plan, bool animate, long milliseconds, string how)
         {
             Plan = plan;
+            TurnBack = TurnBackPoint.Find(terrain.Site, terrain.ReturnMinutes, Plan);
             if (Plan.Path.Count >= 2) ShowPlannedRoute(Plan.Path.ToArray(), animate);
             else ClearPlannedRoute();
             ShowPlanOnPanel();
+            if (stopPillars != null)
+                stopPillars.ShowTurnBack(TurnBack.found ? TurnBack.point : (Vector2?)null,
+                    "with " + WhatIfTankPercent.ToString("0") + " % of a tank · ESTIMATE", "with " + WhatIfTankPercent.ToString("0") + " %");
             terrain.SetReturnReach(WhatIfTankPercent < 100f ? MissionFallback.ReachMinutes(WhatIfTankPercent) : float.PositiveInfinity);
+            if (TurnBack.found) WalkbackLog.Info("Point of no return: " + TurnBack.metersAlong.ToString("0") + " m along the route, before " + TurnBack.beforeName);
             WalkbackLog.Info("Mission planned in " + milliseconds + " ms" + how + " (plan B): " + MissionFallback.LogLine(Plan));
         }
 
@@ -121,6 +129,8 @@ namespace Walkback
             MissionFallback.Describe(Plan, out state, out headline, out summary, out note);
             // v1.1: the tank came from a SUITS telemetry server, not from a WHAT IF.
             if (SuitsLive && tankNote != null) note = tankNote;
+            // v1.1: where to turn back, when the plan does not fit its tank.
+            else if (TurnBack.found) note = TurnBackPoint.Note(TurnBack, WhatIfTankPercent);
             panel.ShowVerdict(state, headline, summary, note);
             // The same plan as charts: oxygen, time and height along the route (empty when there is no route).
             panel.ShowCharts(terrain != null ? terrain.Site : null, Plan);

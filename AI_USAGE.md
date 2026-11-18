@@ -85,3 +85,4 @@ Work on the next version, kept on the branch `v1.1` so that `main`, the release 
 - **Minutes of work at those stops** (`4bead4d`): -5 / +5 on the card; the minutes are the astronaut's estimate and the card says so.
 - **360° PHOTO off on picked stops, test screenshots, and an optional SUITS telemetry link** (off unless set up): Claude Code read the public README, `EVA.json` and `server.c` of the SUITS tech team's TSS repositories on GitHub to learn the request format and field names, and wrote a client for them; no TSS code was copied. Tested against a stand-in server on the laptop only.
 - **REMOVE, the ground card and planning on a worker thread** (Claude Code, Opus 5.5; directed by the team, checked by the automatic test).
+- **The point of no return on the map** (Claude Code, Opus 5.5; the team's rule from the verdict, applied point by point; checked by the automatic test).
