@@ -25,6 +25,33 @@ namespace Walkback
         public const string Tag = "Your pick · no task time";
         public const string Science = "Picked on the map by the astronaut. No science note in the data for this place.";
 
+        /// <summary>The astronaut sets the work at a picked stop in steps of this many minutes...</summary>
+        public const float StepMinutes = 5f;
+        /// <summary>...from 0 up to this.</summary>
+        public const float MaxMinutes = 120f;
+        /// <summary>The one task a picked stop carries once it has minutes: the astronaut's own estimate, not data.</summary>
+        public const string TaskName = "Your estimate";
+
+        /// <summary>Minutes of work the astronaut set at this stop.</summary>
+        public static float Minutes(StopInfo stop)
+        {
+            return HudEstimate.TaskMinutes(stop);
+        }
+
+        /// <summary>Sets the work at a picked stop (clamped to 0..MaxMinutes, whole steps). 0 = no task at all.</summary>
+        public static void SetMinutes(StopInfo stop, float minutes)
+        {
+            if (stop == null) return;
+            float m = Mathf.Clamp(Mathf.Round(minutes / StepMinutes) * StepMinutes, 0f, MaxMinutes);
+            stop.tasks = m > 0f ? new[] { new StopTask { name = TaskName, minutes = m } } : new StopTask[0];
+        }
+
+        /// <summary>The stop card's work line for a picked stop: short, so the -5 / +5 buttons fit beside it.</summary>
+        public static string WorkLine(StopInfo stop)
+        {
+            return "Work: " + Minutes(stop).ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " min · your estimate";
+        }
+
         public static bool IsUser(StopInfo stop)
         {
             return stop != null && stop.id != null && stop.id.StartsWith(IdPrefix);

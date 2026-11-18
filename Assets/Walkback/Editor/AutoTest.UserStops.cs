@@ -61,13 +61,15 @@ namespace Walkback.EditorTools
                 "stop " + index + ", " + before.ToString("0") + " m -> " + (app.Plan != null ? app.Plan.WalkMeters.ToString("0") : "?") + " m");
             Check("My stops: it has a blue pillar and its card says it was picked here, with 0 minutes of work",
                 app.stopPillars.Stops.Count == site.Stops.Length && app.stopPillars.Stops[index].baseColor == StopPillars.UserStopColor &&
-                panel.stopName.text == "My stop 1" && panel.stopScience.text == UserStops.Science && panel.stopTasks.text.Contains("none"),
+                panel.stopName.text == "My stop 1" && panel.stopScience.text == UserStops.Science && panel.stopTasks.text == "Work: 0 min · your estimate",
                 panel.stopName.text + " / " + panel.stopTasks.text);
             Check("My stops: the stop buttons stay the data's stops, and CLEAR is on",
                 panel.stopButtons.Count == Mathf.Min(original.Length, 4) && panel.clearStopsButton != null && panel.clearStopsButton.Interactable &&
                 panel.stopButtons.All(b => !b.Selected));
             Check("My stops: the plan visits it (one leg ends there)",
                 app.Plan != null && app.Plan.Legs.Any(l => l.ToStop == index));
+
+            CheckUserStopMinutes(app, panel, index);
 
             // Pressing a data stop's button still selects that stop, wherever it now sits in the order.
             panel.stopButtons[0].OnPointerClick(panel.stopButtons[0].transform.position);
@@ -146,6 +148,55 @@ namespace Walkback.EditorTools
             panel.BuildStopButtons(site.Stops);
             app.PlanMission(false);
             app.SelectStop(selectedBefore);
+        }
+
+        /// <summary>The -5 / +5 buttons of a picked stop's card (stop at <paramref name="index"/>, selected, 0 min).</summary>
+        static void CheckUserStopMinutes(WalkbackApp app, MissionPanel panel, int index)
+        {
+            SiteData site = app.terrain.Site;
+            var less = panel.lessMinutesButton;
+            var more = panel.moreMinutesButton;
+            if (less == null || more == null)
+            {
+                Check("My stop minutes: the card has -5 / +5 buttons", false, "not built");
+                return;
+            }
+            Check("My stop minutes: a picked stop's card shows -5 / +5, with -5 off at 0 minutes",
+                less.gameObject.activeInHierarchy && more.gameObject.activeInHierarchy && !less.Interactable && more.Interactable);
+
+            float work = app.Plan.WorkMinutes, total = app.Plan.TotalMinutes, used = app.Plan.UsedLiters;
+            for (int i = 0; i < 3; i++) more.OnPointerClick(more.transform.position);
+            Check("My stop minutes: three +5 make 15 minutes of work there, and the plan counts them (time and oxygen)",
+                Mathf.Approximately(UserStops.Minutes(site.Stops[index]), 15f) && Mathf.Abs(app.Plan.WorkMinutes - work - 15f) < 0.01f &&
+                app.Plan.TotalMinutes > total + 14.9f && app.Plan.UsedLiters > used && app.SelectedStop == index &&
+                panel.stopTasks.text == "Work: 15 min · your estimate" && less.Interactable,
+                panel.stopTasks.text + ", work " + work.ToString("0.0") + " -> " + app.Plan.WorkMinutes.ToString("0.0") + " min");
+            less.OnPointerClick(less.transform.position);
+            Check("My stop minutes: -5 takes 5 away", Mathf.Approximately(UserStops.Minutes(site.Stops[index]), 10f) && Mathf.Abs(app.Plan.WorkMinutes - work - 10f) < 0.01f);
+            Check("My stop minutes: the work line and the buttons fit on the card without covering each other",
+                panel.stopTasks.preferredWidth + 54f <= 464f, panel.stopTasks.preferredWidth.ToString("0") + " px");
+
+            var stop = new StopInfo();
+            UserStops.SetMinutes(stop, 500f);
+            float top = UserStops.Minutes(stop);
+            UserStops.SetMinutes(stop, -20f);
+            Check("My stop minutes: from 0 to " + UserStops.MaxMinutes.ToString("0") + " min, in steps of 5, and 0 means no task",
+                Mathf.Approximately(top, UserStops.MaxMinutes) && stop.tasks.Length == 0);
+
+            int data = -1;
+            for (int i = 0; i < site.Stops.Length; i++) if (!UserStops.IsUser(site.Stops[i])) { data = i; break; }
+            float dataWork = HudEstimate.TaskMinutes(site.Stops[data]);
+            app.SelectStop(data);
+            bool hidden = !less.gameObject.activeInHierarchy && !more.gameObject.activeInHierarchy;
+            Check("My stop minutes: the data's stops have no -5 / +5 and their tasks cannot change",
+                hidden && app.ChangeUserStopMinutes(data, 5f) < 0f && Mathf.Approximately(HudEstimate.TaskMinutes(site.Stops[data]), dataWork));
+
+            app.SelectStop(index);
+            app.stopPillars.Stops[data].OnPointerEnter();
+            Check("My stop minutes: no -5 / +5 while another stop is previewed", !less.gameObject.activeInHierarchy);
+            app.stopPillars.Stops[data].OnPointerExit();
+            Check("My stop minutes: back on the picked stop's card they come back", less.gameObject.activeInHierarchy && panel.stopTasks.text.StartsWith("Work: 10 min"));
+            app.SelectStop(index);
         }
 
         struct Spot { public Vector2 meters; public Vector3 world; }

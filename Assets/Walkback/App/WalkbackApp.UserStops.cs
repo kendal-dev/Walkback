@@ -61,6 +61,25 @@ namespace Walkback
             SelectStop(UserStops.IndexOf(terrain.Site.Stops, selectedId));
         }
 
+        /// <summary>
+        /// The -5 / +5 buttons of a picked stop's card: changes its minutes of work and plans again (time, oxygen,
+        /// verdict). Data stops keep their tasks. Returns the minutes now set, or -1 if nothing changed.
+        /// </summary>
+        public float ChangeUserStopMinutes(int index, float delta)
+        {
+            if (!CanEditStops || index < 0 || index >= terrain.Site.Stops.Length) return -1f;
+            StopInfo stop = terrain.Site.Stops[index];
+            if (!UserStops.IsUser(stop)) return -1f;
+            float was = UserStops.Minutes(stop);
+            UserStops.SetMinutes(stop, was + delta);
+            float now = UserStops.Minutes(stop);
+            if (Mathf.Approximately(now, was)) return -1f;
+            PlanMission(false);
+            WalkbackLog.Info(stop.name + ": work " + was.ToString("0") + " -> " + now.ToString("0") + " min (your estimate)");
+            SelectStop(index);
+            return now;
+        }
+
         void ApplyStops()
         {
             if (PreviewedStop >= 0) EndPreview(PreviewedStop);

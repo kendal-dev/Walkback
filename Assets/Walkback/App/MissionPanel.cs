@@ -102,6 +102,9 @@ namespace Walkback
         public RectTransform stopButtonRow;
         /// <summary>v1.1: takes away the stops the astronaut picked on the map. Off while there are none.</summary>
         public PanelButton clearStopsButton;
+        /// <summary>v1.1: on a picked stop's card, take 5 minutes of work away / add 5 (hidden for the data's stops).</summary>
+        public PanelButton lessMinutesButton;
+        public PanelButton moreMinutesButton;
         public const string ClearStopsText = "CLEAR";
         /// <summary>The id of the stop behind each stop button (only the data's stops get a button).</summary>
         readonly List<string> stopButtonIds = new List<string>();
@@ -215,6 +218,10 @@ namespace Walkback
             app.UserStopsChanged += OnUserStopsChanged;
             if (clearStopsButton != null)
                 clearStopsButton.onClick = () => { if (boundApp != null) boundApp.ClearUserStops(); };
+            if (lessMinutesButton != null)
+                lessMinutesButton.onClick = () => { if (boundApp != null) boundApp.ChangeUserStopMinutes(boundApp.SelectedStop, -UserStops.StepMinutes); };
+            if (moreMinutesButton != null)
+                moreMinutesButton.onClick = () => { if (boundApp != null) boundApp.ChangeUserStopMinutes(boundApp.SelectedStop, UserStops.StepMinutes); };
             OnUserStopsChanged();
             BuildStopButtons(app.terrain != null && app.terrain.Site != null ? app.terrain.Site.Stops : new StopInfo[0]);
             if (jumpButton != null)
@@ -298,6 +305,7 @@ namespace Walkback
             stopBadge.color = WalkbackTheme.Live;
             // The 360° PHOTO button jumps to the selected stop, not to this one: off while previewing.
             if (jumpButton != null) jumpButton.SetInteractable(false);
+            ShowMinuteButtons(false, null);
             ShowingPreview = true;
         }
 
@@ -349,6 +357,7 @@ namespace Walkback
         {
             if (stopName == null) return;   // side board not built
             ShowingPreview = false;
+            ShowMinuteButtons(false, null);
             SiteData site = boundApp != null && boundApp.terrain != null ? boundApp.terrain.Site : null;
             StopInfo[] stops = site != null ? site.Stops : new StopInfo[0];
             LightStopButton(index);
@@ -380,6 +389,11 @@ namespace Walkback
             }
             stopScience.text = string.IsNullOrEmpty(stop.science) ? "No science note for this stop in the data yet." : stop.science;
             stopTasks.text = TasksLine(stop.tasks);
+            if (UserStops.IsUser(stop))
+            {
+                stopTasks.text = UserStops.WorkLine(stop);
+                ShowMinuteButtons(true, stop);
+            }
 
             var footerParts = new List<string>();
             if (!string.IsNullOrEmpty(stop.risk)) footerParts.Add("Risk: " + stop.risk);
@@ -387,6 +401,18 @@ namespace Walkback
             if (string.IsNullOrEmpty(stop.panorama)) footerParts.Add("No panorama for this stop yet");
             stopFooter.text = footerParts.Count > 0 ? string.Join("  ·  ", footerParts.ToArray()) : "No risk note or photo credit in the data yet.";
             if (jumpButton != null) jumpButton.SetInteractable(true);
+        }
+
+        /// <summary>The -5 / +5 buttons: shown only on a picked stop's card, each off at its end of the range.</summary>
+        void ShowMinuteButtons(bool show, StopInfo stop)
+        {
+            if (lessMinutesButton == null || moreMinutesButton == null) return;
+            lessMinutesButton.gameObject.SetActive(show);
+            moreMinutesButton.gameObject.SetActive(show);
+            if (!show || stop == null) return;
+            float m = UserStops.Minutes(stop);
+            lessMinutesButton.SetInteractable(m > 0f);
+            moreMinutesButton.SetInteractable(m < UserStops.MaxMinutes);
         }
 
         public static string TasksLine(StopTask[] tasks)
@@ -527,6 +553,11 @@ namespace Walkback
             stopScience.alignment = TextAnchor.UpperLeft;
             stopTasks = AddText(rect, "StopTasks", "No stops on this map yet.", font, uiMaterial, 30, FontStyle.Normal, WalkbackTheme.Text, 54, 544, 660, 110);
             stopTasks.alignment = TextAnchor.UpperLeft;
+            // v1.1: a picked stop's minutes of work, right of its short work line (hidden for the data's stops).
+            lessMinutesButton = PanelButton.Create(rect, "LessMinutes", "-5 MIN", font, uiMaterial, 28, 464, 544, 120, ButtonHeight);
+            moreMinutesButton = PanelButton.Create(rect, "MoreMinutes", "+5 MIN", font, uiMaterial, 28, 594, 544, 120, ButtonHeight);
+            lessMinutesButton.gameObject.SetActive(false);
+            moreMinutesButton.gameObject.SetActive(false);
             stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 664, 660, 134);
             stopFooter.alignment = TextAnchor.UpperLeft;
             jumpButton.SetInteractable(false);
