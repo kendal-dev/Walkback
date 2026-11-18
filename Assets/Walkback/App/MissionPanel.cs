@@ -400,7 +400,8 @@ namespace Walkback
             if (!string.IsNullOrEmpty(stop.photoCredit)) footerParts.Add("Photo: " + stop.photoCredit);
             if (string.IsNullOrEmpty(stop.panorama)) footerParts.Add("No panorama for this stop yet");
             stopFooter.text = footerParts.Count > 0 ? string.Join("  ·  ", footerParts.ToArray()) : "No risk note or photo credit in the data yet.";
-            if (jumpButton != null) jumpButton.SetInteractable(true);
+            // A picked stop has no photo: its 360° PHOTO button stays off.
+            if (jumpButton != null) jumpButton.SetInteractable(!UserStops.IsUser(stop));
         }
 
         /// <summary>The -5 / +5 buttons: shown only on a picked stop's card, each off at its end of the range.</summary>

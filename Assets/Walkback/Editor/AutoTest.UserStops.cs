@@ -59,9 +59,9 @@ namespace Walkback.EditorTools
                 index >= 0 && site.Stops.Length == original.Length + 1 && UserStops.IsUser(site.Stops[index]) && app.SelectedStop == index &&
                 app.Plan != null && app.Plan.Legs.Count == legsBefore + 1 && changed == 1 && panel.verdictNote.text.Contains("ESTIMATE"),
                 "stop " + index + ", " + before.ToString("0") + " m -> " + (app.Plan != null ? app.Plan.WalkMeters.ToString("0") : "?") + " m");
-            Check("My stops: it has a blue pillar and its card says it was picked here, with 0 minutes of work",
+            Check("My stops: it has a blue pillar and its card says it was picked here, with 0 minutes of work and no 360° PHOTO",
                 app.stopPillars.Stops.Count == site.Stops.Length && app.stopPillars.Stops[index].baseColor == StopPillars.UserStopColor &&
-                panel.stopName.text == "My stop 1" && panel.stopScience.text == UserStops.Science && panel.stopTasks.text == "Work: 0 min · your estimate",
+                panel.stopName.text == "My stop 1" && !panel.jumpButton.Interactable && panel.stopScience.text == UserStops.Science && panel.stopTasks.text == "Work: 0 min · your estimate",
                 panel.stopName.text + " / " + panel.stopTasks.text);
             Check("My stops: the stop buttons stay the data's stops, and CLEAR is on",
                 panel.stopButtons.Count == Mathf.Min(original.Length, 4) && panel.clearStopsButton != null && panel.clearStopsButton.Interactable &&
@@ -197,6 +197,41 @@ namespace Walkback.EditorTools
             app.stopPillars.Stops[data].OnPointerExit();
             Check("My stop minutes: back on the picked stop's card they come back", less.gameObject.activeInHierarchy && panel.stopTasks.text.StartsWith("Work: 10 min"));
             app.SelectStop(index);
+        }
+
+        /// <summary>v1.1 screenshots: the map with a picked stop, its card with minutes, and a preview of another stop.</summary>
+        static void ShotsUserStops(WalkbackApp app, MissionPanel panel, Camera cam, Vector3 panelEye)
+        {
+            SiteData site = app.terrain.Site;
+            StopInfo[] original = site.Stops;
+            Vector2 spot;
+            if (!FindSpot(site, app.terrain.Slope, true, out spot)) return;
+            int index = app.AddUserStop(spot);
+            if (index < 0) return;
+            app.ChangeUserStopMinutes(index, 15f);
+            app.terrain.ShowLayer(MapLayer.Photo);
+            app.RefreshPanel();
+            app.stopPillars.FaceCamera(cam);
+            Canvas.ForceUpdateCanvases();
+            Vector3 map = app.mapRoot.position;
+            Shot(cam, "v11_01_my_stop_on_the_map.png", map + new Vector3(0f, 0.75f, -0.75f), map);
+            if (panel.sideBoard != null)
+            {
+                Vector3 side = panel.sideBoard.position;
+                Shot(cam, "v11_02_my_stop_card_minutes.png", side - panel.sideBoard.forward * 0.85f, side);
+                int data = -1;
+                for (int i = 0; i < site.Stops.Length; i++) if (!UserStops.IsUser(site.Stops[i])) { data = i; break; }
+                app.stopPillars.Stops[data].OnPointerEnter();
+                Canvas.ForceUpdateCanvases();
+                Shot(cam, "v11_03_preview_of_a_stop.png", side - panel.sideBoard.forward * 0.85f, side);
+                app.stopPillars.Stops[data].OnPointerExit();
+            }
+            Shot(cam, "v11_04_plan_with_my_stop.png", panelEye, SceneBuilder.PanelCenter);
+            site.Stops = original;
+            app.ShowRouteStartState(false);
+            panel.BuildStopButtons(site.Stops);
+            app.PlanMission(false);
+            app.SelectStop(-1);
         }
 
         struct Spot { public Vector2 meters; public Vector3 world; }

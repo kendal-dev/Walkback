@@ -24,6 +24,7 @@ namespace Walkback.EditorTools
             CheckPanelConditions(panel);
             CheckPanelTextFits(panel);
             CheckUserStops(app, panel);
+            CheckSuits(app, panel);
         }
 
         /// <summary>
@@ -826,6 +827,10 @@ namespace Walkback.EditorTools
                 Shot(cam, "panel_07_charts_what_if_15.png", panelEye, SceneBuilder.PanelCenter);
                 app.SetWhatIfTank(100f);
             }
+
+            // 8 to 10 (v1.1). A stop picked on the map with 15 minutes of work, its card, and a preview of another stop.
+            ShotsUserStops(app, panel, cam, panelEye);
+
             app.ClearPlannedRoute();
             panel.ShowNoRoute();
             app.terrain.ShowLayer(layerBefore);
