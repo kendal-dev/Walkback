@@ -75,3 +75,12 @@ These changes reached `main` after the submission and touch the web page, its pu
 - **GitHub Pages (`17bc9c2`).** The publishing workflow moved from `walkback-web/.github/workflows/pages.yml` to the root `.github/workflows/pages.yml`, which publishes `walkback-web/web/`; its header names Claude Code.
 - **The prompts for the external agents.** `walkback-web/agentes/*.md` (in Spanish) are the prompts used to direct the external agents: `00-LEEME.md` is the index, `01-curiosity.md` the Curiosity rover, `02-webxr.md` the "Enter VR" view, `03-check-web.md` the pre-publish check, and `04-revision.md` an independent read-only review of the page. The index names several possible agents; the headers show only Codex and Antigravity, and the repository does not say which tool ran the read-only review.
 - **AI tools in this work,** from the files' header lines: Claude Code, Codex and Antigravity. The team directed and merged the work (PRs 3, 4 and 5).
+
+## Version 1.1 (branch `v1.1`, from 17 Nov)
+
+Work on the next version, kept on the branch `v1.1` so that `main`, the release `v1.0-submission` and the web page stay as they were judged. Written with Claude Code (Opus 5.5), directed by the team; each piece passed the automatic test without the headset. None of it has been seen in the headset yet. What changed is listed in CHANGELOG-v1.1.md.
+
+- **Stop preview** (`97c4bc0`): pointing at a stop's pillar shows its card as a preview.
+- **The astronaut's own stops** (`7db0fdd`): a tap on the map adds a stop and the plan B route, verdict and charts are planned again at once.
+- **Minutes of work at those stops** (`4bead4d`): -5 / +5 on the card; the minutes are the astronaut's estimate and the card says so.
+- **360° PHOTO off on picked stops, test screenshots, and an optional SUITS telemetry link** (off unless set up): Claude Code read the public README, `EVA.json` and `server.c` of the SUITS tech team's TSS repositories on GitHub to learn the request format and field names, and wrote a client for them; no TSS code was copied. Tested against a stand-in server on the laptop only.

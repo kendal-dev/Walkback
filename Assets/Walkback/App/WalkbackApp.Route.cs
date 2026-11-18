@@ -63,6 +63,8 @@ namespace Walkback
             VerdictState state;
             string headline, summary, note;
             MissionFallback.Describe(Plan, out state, out headline, out summary, out note);
+            // v1.1: the tank came from a SUITS telemetry server, not from a WHAT IF.
+            if (SuitsLive && tankNote != null) note = tankNote;
             panel.ShowVerdict(state, headline, summary, note);
             // The same plan as charts: oxygen, time and height along the route (empty when there is no route).
             panel.ShowCharts(terrain != null ? terrain.Site : null, Plan);
@@ -75,6 +77,11 @@ namespace Walkback
         /// </summary>
         public void NextWhatIf()
         {
+            if (SuitsLive)
+            {
+                WalkbackLog.Info("What if: off, the tank comes from SUITS TSS");
+                return;
+            }
             whatIfStep = (whatIfStep + 1) % WhatIfSteps.Length;
             SetWhatIfTank(WhatIfSteps[whatIfStep]);
         }
