@@ -11,18 +11,21 @@ Status: each item passes the automatic test without the headset (`Walkback > Run
 - **CLEAR** on the side board (C on the keyboard) takes the picked stops away and the data's plan comes back. The stop buttons keep the four Curiosity drill sites.
 - **Minutes of work at your stops.** -5 MIN / +5 MIN on a picked stop's card, from 0 to 120 min. The line reads "Work: N min · your estimate", and time, oxygen and the verdict follow at once.
 
-- **360° PHOTO is off on a picked stop's card** (there is no photo of that place).
+- **REMOVE on a picked stop's card**, in the place of 360° PHOTO (a picked stop has no photo): takes that one stop away. CLEAR still takes them all.
+- **What the ground says before you tap.** While the pointer is on bare ground of the map, a small card over the dot reads, for example, "14 min back on foot · 8° slope / ESTIMATE · tap to add a stop here". The minutes are the RETURN layer's own (plan B over the relief). Over 20° it reads "too steep to walk", where there is no way back "no way back on foot", and in a WHAT IF "too far with 8 %", all in red.
+- **Planning off the main thread.** After a tap, a REMOVE, CLEAR or a minute changed, the plan is made on a worker thread with its own copy of the stops and shown when ready, so the headset does not stop for the ~200 ms a plan takes on the Quest. START MISSION waits for a plan still on its way. The WHAT IF and the start of the app still plan at once.
 - **Optional link to a NASA SUITS telemetry server (off by default).** The SUITS challenge's test server, TSS (github.com/SUITS-Techteam), answers UDP requests on port 14141 with the suit's telemetry as JSON (EVA.json). If the file `suits.json` is in the app's data folder (`{"host":"192.168.1.20","port":14141,"eva":1}`), or `-suits host[:port]` is on the command line, Walkback asks every 2 s for that suit's primary oxygen (`oxy_pri_storage`). The plan then starts with that much oxygen instead of a full tank, at most once every 10 s and only when it moved 1 % or more; the verdict card reads "SUITS TSS suit 1 · primary O2 85 % at 12:03 UTC (simulated) · ESTIMATE", and the WHAT IF button is off. TSS's numbers come from its own simulation, not from a real suit, and the app's oxygen model is still plan B. Both shapes of EVA.json are read (2026: suits under `eva1` / `eva2`; 2027: one suit). Tested only against a stand-in server on the laptop, never against a running TSS.
 
 ## To check in the headset
 
 - With hands: a two-hand pinch to zoom must not add a stop (a right pinch released before the left one starts could count as a tap).
 - The tap with the controller's trigger, on a map turned and zoomed.
-- The preview while sweeping the ray over the pillars.
+- The preview while sweeping the ray over the pillars, and the ground card while sweeping it over the map (readable, never in the way).
+- The log line "Mission planned in N ms on a worker" after a tap, and no `fps avg` drop while adding stops.
 
 ## Test
 
-469 of 469 (1.0 had 424). The checks for 1.1 are in `AutoTest.UserStops.cs`, `AutoTest.Suits.cs` and the preview checks in `AutoTest.Panel.cs`; four screenshots `TestOutput/v11_*.png`.
+480 of 480 (1.0 had 424). The checks for 1.1 are in `AutoTest.UserStops.cs`, `AutoTest.Suits.cs` and the preview checks in `AutoTest.Panel.cs`; four screenshots `TestOutput/v11_*.png`.
 
 ## To check with a SUITS server
 

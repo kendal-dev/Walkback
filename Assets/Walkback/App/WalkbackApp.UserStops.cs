@@ -50,6 +50,20 @@ namespace Walkback
             return slot;
         }
 
+        /// <summary>Takes one picked stop away (its card's REMOVE button) and plans again; no stop is selected after.</summary>
+        public bool RemoveUserStop(int index)
+        {
+            if (!CanEditStops || index < 0 || index >= terrain.Site.Stops.Length || !UserStops.IsUser(terrain.Site.Stops[index])) return false;
+            string name = terrain.Site.Stops[index].name;
+            var list = new System.Collections.Generic.List<StopInfo>(terrain.Site.Stops);
+            list.RemoveAt(index);
+            terrain.Site.Stops = list.ToArray();
+            ApplyStops();
+            WalkbackLog.Info(name + " removed");
+            SelectStop(-1);
+            return true;
+        }
+
         /// <summary>Takes every picked stop away; the data's stops and their plan come back.</summary>
         public void ClearUserStops()
         {
@@ -74,7 +88,7 @@ namespace Walkback
             UserStops.SetMinutes(stop, was + delta);
             float now = UserStops.Minutes(stop);
             if (Mathf.Approximately(now, was)) return -1f;
-            PlanMission(false);
+            PlanMissionSoon(false);
             WalkbackLog.Info(stop.name + ": work " + was.ToString("0") + " -> " + now.ToString("0") + " min (your estimate)");
             SelectStop(index);
             return now;
@@ -85,7 +99,7 @@ namespace Walkback
             if (PreviewedStop >= 0) EndPreview(PreviewedStop);
             ShowRouteStartState(false);
             if (panel != null) panel.BuildStopButtons(terrain.Site.Stops);
-            PlanMission(true);
+            PlanMissionSoon(true);
             if (UserStopsChanged != null) UserStopsChanged();
         }
 

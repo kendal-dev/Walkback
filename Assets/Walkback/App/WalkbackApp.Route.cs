@@ -39,21 +39,77 @@ namespace Walkback
         public void PlanMission(bool animate)
         {
             if (terrain == null || terrain.Site == null || terrain.Site.Stops == null || terrain.Site.Stops.Length == 0) return;
+            pendingPlan = null;   // a plan made now wins over one still on its way
             try
             {
                 var watch = System.Diagnostics.Stopwatch.StartNew();
-                Plan = MissionFallback.Make(terrain.Site, terrain.Slope, WhatIfTankPercent);
-                if (Plan.Path.Count >= 2) ShowPlannedRoute(Plan.Path.ToArray(), animate);
-                else ClearPlannedRoute();
-                ShowPlanOnPanel();
-                terrain.SetReturnReach(WhatIfTankPercent < 100f ? MissionFallback.ReachMinutes(WhatIfTankPercent) : float.PositiveInfinity);
-                WalkbackLog.Info("Mission planned in " + watch.ElapsedMilliseconds + " ms (plan B): " + MissionFallback.LogLine(Plan));
+                ApplyPlan(MissionFallback.Make(terrain.Site, terrain.Slope, WhatIfTankPercent), animate, watch.ElapsedMilliseconds, "");
             }
             catch (Exception e)
             {
                 Plan = null;
                 WalkbackLog.Warn("Mission plan B failed, the verdict stays NO ROUTE YET: " + e.Message);
             }
+        }
+
+        void ApplyPlan(MissionFallback.Plan plan, bool animate, long milliseconds, string how)
+        {
+            Plan = plan;
+            if (Plan.Path.Count >= 2) ShowPlannedRoute(Plan.Path.ToArray(), animate);
+            else ClearPlannedRoute();
+            ShowPlanOnPanel();
+            terrain.SetReturnReach(WhatIfTankPercent < 100f ? MissionFallback.ReachMinutes(WhatIfTankPercent) : float.PositiveInfinity);
+            WalkbackLog.Info("Mission planned in " + milliseconds + " ms" + how + " (plan B): " + MissionFallback.LogLine(Plan));
+        }
+
+        // ---- v1.1: planning off the main thread, so a tap on the map does not freeze the headset (~200 ms a plan).
+
+        System.Threading.Tasks.Task<MissionFallback.Plan> pendingPlan;
+        bool pendingAnimate;
+        System.Diagnostics.Stopwatch pendingWatch;
+
+        /// <summary>True while a plan is being made on a worker thread.</summary>
+        public bool PlanPending { get { return pendingPlan != null; } }
+
+        /// <summary>
+        /// Plans again on a worker thread (in Play) and shows the result when it is ready; outside Play it plans
+        /// at once. A newer request replaces one still on its way. The worker gets a copy of the site's stops.
+        /// </summary>
+        public void PlanMissionSoon(bool animate)
+        {
+            if (!Application.isPlaying) { PlanMission(animate); return; }
+            if (terrain == null || terrain.Site == null || terrain.Site.Stops == null || terrain.Site.Stops.Length == 0) return;
+            SiteData copy = terrain.Site.CopyForPlanning();
+            float[] slope = terrain.Slope;
+            float tank = WhatIfTankPercent;
+            pendingAnimate = animate;
+            pendingWatch = System.Diagnostics.Stopwatch.StartNew();
+            pendingPlan = System.Threading.Tasks.Task.Run(() => MissionFallback.Make(copy, slope, tank));
+        }
+
+        /// <summary>Waits for a plan on its way and shows it (mission start needs the current plan).</summary>
+        public void FinishPendingPlan()
+        {
+            if (pendingPlan == null) return;
+            try { pendingPlan.Wait(); } catch (Exception) { }
+            ApplyPendingPlan();
+        }
+
+        void TickPendingPlan()
+        {
+            if (pendingPlan != null && pendingPlan.IsCompleted) ApplyPendingPlan();
+        }
+
+        void ApplyPendingPlan()
+        {
+            var task = pendingPlan;
+            pendingPlan = null;
+            if (task.Status != System.Threading.Tasks.TaskStatus.RanToCompletion)
+            {
+                WalkbackLog.Warn("Mission plan B failed on the worker, the last plan stays: " + (task.Exception != null ? task.Exception.GetBaseException().Message : task.Status.ToString()));
+                return;
+            }
+            ApplyPlan(task.Result, pendingAnimate, pendingWatch != null ? pendingWatch.ElapsedMilliseconds : 0, " on a worker");
         }
 
         /// <summary>Writes the current plan on the verdict card (nothing if there is no plan).</summary>
@@ -132,6 +188,7 @@ namespace Walkback
 
         partial void UpdateRoute()
         {
+            TickPendingPlan();
             // WHAT IF: F on the keyboard, or a click of the left thumbstick. Not while the map is locked
             // (globe opening, inside a 360° photo), nor during a fade or right after the mission.
             if (MissionActive) missionSeenAt = Time.unscaledTime;

@@ -70,6 +70,9 @@ namespace Walkback.EditorTools
                 app.Plan != null && app.Plan.Legs.Any(l => l.ToStop == index));
 
             CheckUserStopMinutes(app, panel, index);
+            CheckUserStopLabels(app, index);
+            CheckPlanOnWorker(app);
+            CheckRemoveAndProbe(app, panel);
 
             // Pressing a data stop's button still selects that stop, wherever it now sits in the order.
             panel.stopButtons[0].OnPointerClick(panel.stopButtons[0].transform.position);
@@ -211,10 +214,17 @@ namespace Walkback.EditorTools
             app.ChangeUserStopMinutes(index, 15f);
             app.terrain.ShowLayer(MapLayer.Photo);
             app.RefreshPanel();
-            app.stopPillars.FaceCamera(cam);
-            Canvas.ForceUpdateCanvases();
             Vector3 map = app.mapRoot.position;
-            Shot(cam, "v11_01_my_stop_on_the_map.png", map + new Vector3(0f, 0.75f, -0.75f), map);
+            // The labels turn and go up for the camera's place: put the camera there first.
+            Vector3 above = map + new Vector3(0f, 0.75f, -0.75f);
+            cam.transform.SetPositionAndRotation(above, Quaternion.LookRotation(map - above, Vector3.up));
+            app.stopPillars.SetGrowth(1f);
+            app.stopPillars.FaceCamera(cam);
+            Vector2 probeAt = spot + new Vector2(0f, -120f);
+            app.ShowProbeAt(app.terrain.transform.TransformPoint(RouteGeometry.ToMap(site, probeAt, 0f)), above);
+            Canvas.ForceUpdateCanvases();
+            Shot(cam, "v11_01_my_stop_on_the_map.png", above, map);
+            app.ShowProbeAt(null, above);
             if (panel.sideBoard != null)
             {
                 Vector3 side = panel.sideBoard.position;
@@ -232,6 +242,129 @@ namespace Walkback.EditorTools
             panel.BuildStopButtons(site.Stops);
             app.PlanMission(false);
             app.SelectStop(-1);
+        }
+
+        /// <summary>With a picked stop on the map, no pillar label covers another, from the user's place and from above the table.</summary>
+        static void CheckUserStopLabels(WalkbackApp app, int index)
+        {
+            var cam = app.desktopCamera;
+            Vector3 wasAt = cam.transform.position;
+            Quaternion wasLooking = cam.transform.rotation;
+            Vector3 map = app.mapRoot.position;
+            var poses = new[] { MissionPanel.UserEye, map + new Vector3(0f, 0.75f, -0.75f) };
+            string report = "";
+            float worstAll = 0f;
+            foreach (Vector3 eye in poses)
+            {
+                cam.transform.position = eye;
+                cam.transform.rotation = Quaternion.LookRotation(map - eye, Vector3.up);
+                app.stopPillars.SetGrowth(1f);
+                app.stopPillars.FaceCamera(cam);
+                Canvas.ForceUpdateCanvases();
+                var views = new System.Collections.Generic.List<PillarView> { app.stopPillars.Habitat };
+                views.AddRange(app.stopPillars.Stops);
+                float worst = 0f;
+                string pair = "none";
+                for (int i = 0; i < views.Count; i++)
+                    for (int j = 0; j < i; j++)
+                    {
+                        Rect a = LabelViewRect(cam, views[i].labelRoot), b = LabelViewRect(cam, views[j].labelRoot);
+                        float w = Mathf.Min(a.xMax, b.xMax) - Mathf.Max(a.xMin, b.xMin), h = Mathf.Min(a.yMax, b.yMax) - Mathf.Max(a.yMin, b.yMin);
+                        if (w <= 0f || h <= 0f) continue;
+                        float share = w * h / Mathf.Max(1e-9f, Mathf.Min(a.width * a.height, b.width * b.height));
+                        if (share > worst) { worst = share; pair = views[i].label.text + " / " + views[j].label.text; }
+                    }
+                worstAll = Mathf.Max(worstAll, worst);
+                report += (report.Length > 0 ? "; " : "") + (worst * 100f).ToString("F0") + " % (" + pair + ")";
+            }
+            Check("My stops: with a picked stop no pillar label covers another, from the user's place or from above the table (under 5 %)", worstAll < 0.05f, report);
+            cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+            app.stopPillars.FaceCamera(cam);
+        }
+
+        /// <summary>The plan made on a worker thread is the same plan, and the worker's copy of the stops is its own.</summary>
+        static void CheckPlanOnWorker(WalkbackApp app)
+        {
+            SiteData site = app.terrain.Site;
+            SiteData copy = site.CopyForPlanning();
+            float tank = app.WhatIfTankPercent;
+            var task = System.Threading.Tasks.Task.Run(() => MissionFallback.Make(copy, app.terrain.Slope, tank));
+            bool done = task.Wait(20000);
+            MissionFallback.Plan here = MissionFallback.Make(site, app.terrain.Slope, tank);
+            Check("Worker plan: planning on a worker thread gives the same route, time and oxygen",
+                done && task.Result.Path.Count == here.Path.Count && Mathf.Abs(task.Result.WalkMeters - here.WalkMeters) < 0.01f &&
+                Mathf.Abs(task.Result.TotalMinutes - here.TotalMinutes) < 0.01f && Mathf.Abs(task.Result.UsedLiters - here.UsedLiters) < 0.01f,
+                done ? task.Result.WalkMeters.ToString("0") + " m vs " + here.WalkMeters.ToString("0") + " m" : "timed out");
+            int user = -1;
+            for (int i = 0; i < site.Stops.Length; i++) if (UserStops.IsUser(site.Stops[i])) { user = i; break; }
+            float before = user >= 0 ? HudEstimate.TaskMinutes(copy.Stops[user]) : 0f;
+            if (user >= 0) UserStops.SetMinutes(site.Stops[user], before + 5f);
+            Check("Worker plan: the worker's copy keeps its own stops and minutes while the app changes them",
+                user >= 0 && copy.Stops != site.Stops && copy.Heights == site.Heights && Mathf.Approximately(HudEstimate.TaskMinutes(copy.Stops[user]), before) &&
+                Mathf.Approximately(HudEstimate.TaskMinutes(site.Stops[user]), before + 5f));
+            if (user >= 0) UserStops.SetMinutes(site.Stops[user], before);
+            app.PlanMissionSoon(false);
+            Check("Worker plan: outside Play it plans at once (nothing left pending)", !app.PlanPending);
+        }
+
+        /// <summary>REMOVE on a picked stop's card, and the ground probe's card.</summary>
+        static void CheckRemoveAndProbe(WalkbackApp app, MissionPanel panel)
+        {
+            SiteData site = app.terrain.Site;
+            Vector2 spot;
+            if (!FindSpot(site, app.terrain.Slope, true, out spot)) return;
+            int count = site.Stops.Length;
+            int index = app.AddUserStop(spot);
+            bool swapped = panel.removeStopButton != null && panel.removeStopButton.gameObject.activeInHierarchy && !panel.jumpButton.gameObject.activeInHierarchy;
+            if (panel.removeStopButton != null) panel.removeStopButton.OnPointerClick(panel.removeStopButton.transform.position);
+            Check("My stops: REMOVE takes the place of 360° PHOTO on a picked stop's card and takes that one stop away",
+                index >= 0 && swapped && site.Stops.Length == count && app.SelectedStop == -1 && panel.jumpButton.gameObject.activeInHierarchy &&
+                !panel.removeStopButton.gameObject.activeInHierarchy && app.stopPillars.Stops.Count == count);
+            int dataIndex = -1;
+            for (int i = 0; i < site.Stops.Length; i++) if (!UserStops.IsUser(site.Stops[i])) { dataIndex = i; break; }
+            Check("My stops: REMOVE does nothing to a data stop", !app.RemoveUserStop(dataIndex) && site.Stops.Length == count);
+
+            // The probe card: minutes back and slope where the pointer is.
+            Vector3 eye = MissionPanel.UserEye;
+            Vector3 world = app.terrain.transform.TransformPoint(RouteGeometry.ToMap(site, spot, 0f));
+            app.ShowProbeAt(world, eye);
+            Canvas.ForceUpdateCanvases();
+            GlobeLabel card = app.ProbeCard;
+            int node = ReturnFallback.NodeOf(site, spot);
+            string expected = HelmetHud.MinutesText(app.terrain.ReturnMinutes[node]) + " back on foot";
+            bool fits = card != null && card.lines.All(t => t.preferredWidth <= ((RectTransform)t.transform).rect.width + 0.5f);
+            Check("Probe: on walkable ground the card says the RETURN layer's minutes back, the slope, and that a tap adds a stop",
+                app.ProbeShown && card.lines[0].text.StartsWith(expected) && card.lines[0].text.Contains("° slope") &&
+                card.lines[1].text == "ESTIMATE · tap to add a stop here" && card.transform.position.y > world.y, card != null ? card.lines[0].text : "no card");
+            Check("Probe: both lines fit the card on one line", fits,
+                card != null ? string.Join(" / ", card.lines.Select(t => t.preferredWidth.ToString("0") + " in " + ((RectTransform)t.transform).rect.width.ToString("0")).ToArray()) : "");
+            Vector2 steep;
+            if (FindSpot(site, app.terrain.Slope, false, out steep))
+            {
+                app.ShowProbeAt(app.terrain.transform.TransformPoint(RouteGeometry.ToMap(site, steep, 0f)), eye);
+                Check("Probe: on ground over 20° it says too steep, in red", card.lines[0].text.Contains("too steep") && card.lines[0].color == WalkbackTheme.Danger, card.lines[0].text);
+            }
+            app.SetWhatIfTank(8f);
+            float reach = app.terrain.ReturnReachMinutes;
+            Vector2 far = Vector2.zero;
+            bool foundFar = false;
+            for (int k = 0; k < site.GridSize * site.GridSize && !foundFar; k += 37)
+            {
+                float m = app.terrain.ReturnMinutes[k];
+                if (float.IsInfinity(m) || m <= reach + 1f) continue;
+                int row = k / site.GridSize, col = k % site.GridSize;
+                far = new Vector2(col * site.NodeSpacing, site.SideMeters - row * site.NodeSpacing);
+                foundFar = MissionFallback.Walkable(site, app.terrain.Slope, far);
+            }
+            if (foundFar)
+            {
+                app.ShowProbeAt(app.terrain.transform.TransformPoint(RouteGeometry.ToMap(site, far, 0f)), eye);
+                Check("Probe: in a WHAT IF at 8 %, ground too far to walk back from says so, in red",
+                    card.lines[0].text.Contains("too far with 8 %") && card.lines[0].color == WalkbackTheme.Danger, card.lines[0].text);
+            }
+            app.SetWhatIfTank(100f);
+            app.ShowProbeAt(null, eye);
+            Check("Probe: off the ground the card hides", !app.ProbeShown);
         }
 
         struct Spot { public Vector2 meters; public Vector3 world; }

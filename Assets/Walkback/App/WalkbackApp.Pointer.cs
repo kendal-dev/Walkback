@@ -24,6 +24,8 @@ namespace Walkback
             if (tableControls != null) tableControls.Tick();
             // v1.1: a short tap on the bare ground adds a stop of the astronaut's own.
             TickMapTap();
+            // v1.1: minutes back and slope under the pointer.
+            TickGroundProbe();
         }
     }
 }

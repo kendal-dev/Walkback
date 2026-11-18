@@ -105,6 +105,9 @@ namespace Walkback
         /// <summary>v1.1: on a picked stop's card, take 5 minutes of work away / add 5 (hidden for the data's stops).</summary>
         public PanelButton lessMinutesButton;
         public PanelButton moreMinutesButton;
+        /// <summary>v1.1: on a picked stop's card, in the place of 360° PHOTO (a picked stop has no photo): takes that stop away.</summary>
+        public PanelButton removeStopButton;
+        public const string RemoveStopText = "REMOVE";
         public const string ClearStopsText = "CLEAR";
         /// <summary>The id of the stop behind each stop button (only the data's stops get a button).</summary>
         readonly List<string> stopButtonIds = new List<string>();
@@ -220,6 +223,8 @@ namespace Walkback
                 clearStopsButton.onClick = () => { if (boundApp != null) boundApp.ClearUserStops(); };
             if (lessMinutesButton != null)
                 lessMinutesButton.onClick = () => { if (boundApp != null) boundApp.ChangeUserStopMinutes(boundApp.SelectedStop, -UserStops.StepMinutes); };
+            if (removeStopButton != null)
+                removeStopButton.onClick = () => { if (boundApp != null) boundApp.RemoveUserStop(boundApp.SelectedStop); };
             if (moreMinutesButton != null)
                 moreMinutesButton.onClick = () => { if (boundApp != null) boundApp.ChangeUserStopMinutes(boundApp.SelectedStop, UserStops.StepMinutes); };
             OnUserStopsChanged();
@@ -410,6 +415,9 @@ namespace Walkback
             if (lessMinutesButton == null || moreMinutesButton == null) return;
             lessMinutesButton.gameObject.SetActive(show);
             moreMinutesButton.gameObject.SetActive(show);
+            // REMOVE takes the place of 360° PHOTO on a picked stop's card.
+            if (removeStopButton != null) removeStopButton.gameObject.SetActive(show);
+            if (jumpButton != null) jumpButton.gameObject.SetActive(!show);
             if (!show || stop == null) return;
             float m = UserStops.Minutes(stop);
             lessMinutesButton.SetInteractable(m > 0f);
@@ -559,6 +567,8 @@ namespace Walkback
             moreMinutesButton = PanelButton.Create(rect, "MoreMinutes", "+5 MIN", font, uiMaterial, 28, 594, 544, 120, ButtonHeight);
             lessMinutesButton.gameObject.SetActive(false);
             moreMinutesButton.gameObject.SetActive(false);
+            removeStopButton = PanelButton.Create(rect, "RemoveMyStop", RemoveStopText, font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
+            removeStopButton.gameObject.SetActive(false);
             stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 664, 660, 134);
             stopFooter.alignment = TextAnchor.UpperLeft;
             jumpButton.SetInteractable(false);

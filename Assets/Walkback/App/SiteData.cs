@@ -112,6 +112,28 @@ namespace Walkback
         public bool StopsAreReal;
 
         public float NodeSpacing { get { return SideMeters / (GridSize - 1); } }
+
+        /// <summary>
+        /// v1.1: a copy a worker thread can plan with while the app goes on: the same terrain arrays (never
+        /// changed after loading), and its own stops and tasks, so a stop added or a minute changed meanwhile
+        /// does not change the copy.
+        /// </summary>
+        public SiteData CopyForPlanning()
+        {
+            var copy = (SiteData)MemberwiseClone();
+            copy.Stops = new StopInfo[Stops != null ? Stops.Length : 0];
+            for (int i = 0; i < copy.Stops.Length; i++)
+            {
+                StopInfo s = Stops[i];
+                if (s == null) continue;
+                var tasks = new StopTask[s.tasks != null ? s.tasks.Length : 0];
+                for (int t = 0; t < tasks.Length; t++)
+                    tasks[t] = s.tasks[t] == null ? null : new StopTask { name = s.tasks[t].name, minutes = s.tasks[t].minutes };
+                copy.Stops[i] = new StopInfo { id = s.id, name = s.name, x = s.x, y = s.y, science = s.science, tasks = tasks,
+                    risk = s.risk, photoCredit = s.photoCredit, panorama = s.panorama, tag = s.tag };
+            }
+            return copy;
+        }
         public Vector2 Habitat { get { return Info != null && Info.habitat != null ? new Vector2(Info.habitat.x, Info.habitat.y) : new Vector2(SideMeters / 2f, SideMeters / 2f); } }
 
         /// <summary>Local meters of node (column, row): x = c * spacing, y = side - r * spacing.</summary>

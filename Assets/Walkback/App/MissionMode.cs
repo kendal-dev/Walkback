@@ -131,6 +131,8 @@ namespace Walkback
         public string WhyNot()
         {
             if (app == null || app.terrain == null || app.terrain.Site == null) return "no site";
+            // v1.1: a plan still being made on a worker (a stop just added) is finished first.
+            app.FinishPendingPlan();
             if (app.mapRoot == null || mars == null || terrainCopy == null || routeFilter == null) return "the mission objects are not in the scene";
             if (app.Plan == null || !app.Plan.HasRoute || app.Plan.Legs.Count == 0) return "no planned route";
             if (app.MapControlsLocked) return "the map is busy (opening, or inside a photo)";
