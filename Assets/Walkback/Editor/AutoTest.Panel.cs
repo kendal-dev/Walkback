@@ -24,6 +24,7 @@ namespace Walkback.EditorTools
             CheckPanelConditions(panel);
             CheckPanelTextFits(panel);
             CheckUserStops(app, panel);
+            CheckUserStopsFile(app, panel);
             CheckSuits(app, panel);
             CheckTurnBack(app, panel);
         }

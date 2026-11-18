@@ -16,6 +16,8 @@ namespace Walkback
 
         partial void StartRoute()
         {
+            // v1.1: the stops the astronaut picked last time come back before the first plan.
+            RestoreUserStops();
             ShowRouteStartState(true);
             // TODO(H2, Fable): when session C's RoutePlanner lands in Assets/Walkback/Model/, plan
             // habitat -> stops -> habitat with it here. Until then: PLAN B (MissionFallback), an estimate

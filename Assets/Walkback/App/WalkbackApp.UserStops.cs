@@ -89,9 +89,53 @@ namespace Walkback
             float now = UserStops.Minutes(stop);
             if (Mathf.Approximately(now, was)) return -1f;
             PlanMissionSoon(false);
+            SaveUserStops();
             WalkbackLog.Info(stop.name + ": work " + was.ToString("0") + " -> " + now.ToString("0") + " min (your estimate)");
             SelectStop(index);
             return now;
+        }
+
+        // ---------------------------------------------------------------- kept between sessions
+
+        /// <summary>Where my_stops.json is read and written. Null = the app's data folder in Play, nowhere outside it (the test sets its own).</summary>
+        public string UserStopsFolder;
+
+        string StopsFolder { get { return UserStopsFolder ?? (Application.isPlaying ? Application.persistentDataPath : null); } }
+
+        /// <summary>Writes the picked stops to my_stops.json (nothing outside Play unless a folder was set).</summary>
+        public void SaveUserStops()
+        {
+            string folder = StopsFolder;
+            if (folder == null || terrain == null || terrain.Site == null) return;
+            string why;
+            if (!UserStopsFile.Save(folder, terrain.Site, out why)) WalkbackLog.Warn("My stops not saved: " + why);
+        }
+
+        /// <summary>
+        /// Puts back the picked stops of my_stops.json for this site, each through the tap's rules and in the
+        /// place of the loop where it adds the least walking. Does not plan: the caller does. Returns how many.
+        /// </summary>
+        public int RestoreUserStops()
+        {
+            string folder = StopsFolder;
+            if (folder == null || terrain == null || terrain.Site == null) return 0;
+            string why;
+            UserStopsFile.Saved[] saved = UserStopsFile.Load(folder, terrain.Site, out why);
+            SiteData site = terrain.Site;
+            int added = 0, skipped = 0;
+            foreach (UserStopsFile.Saved s in saved)
+            {
+                if (s == null) continue;
+                var at = new Vector2(s.x, s.y);
+                if (UserStops.Refusal(site, at) != null) { skipped++; continue; }
+                StopInfo stop = UserStops.Make(UserStops.NextNumber(site.Stops), at);
+                UserStops.SetMinutes(stop, s.minutes);
+                site.Stops = UserStops.Insert(site.Stops, UserStops.BestSlot(site.Habitat, site.Stops, at), stop);
+                added++;
+            }
+            WalkbackLog.Info("My stops from the last session: " + added + (skipped > 0 ? ", " + skipped + " left out by the rules" : "") +
+                (why != null && saved.Length == 0 ? " (" + why + ")" : ""));
+            return added;
         }
 
         void ApplyStops()
@@ -100,6 +144,7 @@ namespace Walkback
             ShowRouteStartState(false);
             if (panel != null) panel.BuildStopButtons(terrain.Site.Stops);
             PlanMissionSoon(true);
+            SaveUserStops();
             if (UserStopsChanged != null) UserStopsChanged();
         }
 
