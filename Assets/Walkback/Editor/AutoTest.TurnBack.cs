@@ -105,6 +105,7 @@ namespace Walkback.EditorTools
                 !app.TurnBack.found && app.stopPillars.TurnBack == null && app.stopPillars.TurnBackTagOnPillar == null &&
                 (host == null || !host.text.StartsWith(StopPillars.TurnBackHereText) && host.color != StopPillars.TurnBackColor), host != null ? host.text : "");
             CheckTurnBackMidLeg(app, panel);
+            CheckTurnBackOnVisor(app);
         }
 
         /// <summary>
@@ -176,6 +177,24 @@ namespace Walkback.EditorTools
             }
             app.stopPillars.ShowTurnBack(null, null, null);
             Check("Turn back mid-leg: taken away again", app.stopPillars.TurnBack == null);
+        }
+
+        /// <summary>v1.1: the visor while walking says how far the point of no return is.</summary>
+        static void CheckTurnBackOnVisor(WalkbackApp app)
+        {
+            SiteData site = app.terrain.Site;
+            app.SetWhatIfTank(8f);
+            var progress = new MissionProgress(site, app.Plan, app.terrain.ReturnMinutes);
+            MissionProgress.Snapshot s = progress.Read(site.Habitat);
+            string line = HelmetHud.ReturnLastLine(s);
+            float expected = app.TurnBack.found ? progress.TurnBackAt : -1f;
+            Check("Visor: at 8 % the minutes-back card says how far the point of no return is (route meters from here)",
+                app.TurnBack.found && Mathf.Abs(s.turnBackInMeters - expected) < 0.5f && line == "turn back in " + HelmetHud.MetersText(expected) && !s.turnBack, line);
+            app.SetWhatIfTank(100f);
+            progress = new MissionProgress(site, app.Plan, app.terrain.ReturnMinutes);
+            s = progress.Read(site.Habitat);
+            Check("Visor: with a full tank there is no point of no return and the line is the oxygen margin again",
+                s.turnBackInMeters < 0f && HelmetHud.ReturnLastLine(s).StartsWith("spare O2"), HelmetHud.ReturnLastLine(s));
         }
 
         /// <summary>Liters used walking the plan up to a path point (work of the stops passed included; with <paramref name="withWorkHere"/>, the work at that point's stop too).</summary>

@@ -77,6 +77,16 @@ namespace Walkback
         }
 
         /// <summary>The third line of the return card: what is left after the way back, or by how much it falls short.</summary>
+        /// <summary>
+        /// v1.1: the minutes-back card's last line while walking. Ahead of the plan's point of no return it says how
+        /// far that is ("turn back in 120 m"); past it TURN BACK NOW is on, and the line says the oxygen margin as before.
+        /// </summary>
+        public static string ReturnLastLine(MissionProgress.Snapshot s)
+        {
+            if (!s.turnBack && !s.noWayBack && s.turnBackInMeters >= 0f) return "turn back in " + MetersText(s.turnBackInMeters);
+            return MarginText(s.returnState, s.marginMinutes, s.noWayBack);
+        }
+
         public static string MarginText(HudEstimate.ReturnState state, float marginMinutes, bool noWayBack)
         {
             if (noWayBack) return "no way back on foot";
@@ -176,7 +186,7 @@ namespace Walkback
             AtStop = -1;
             SetOxygen(s.oxygenLeftPercent);
             // "CUT OFF" fits the card on one line at this size; the line under it says what it means.
-            returnCard.SetLines(s.noWayBack ? "CUT OFF" : MinutesText(s.returnMinutes), "back to habitat (estimate)", MarginText(s.returnState, s.marginMinutes, s.noWayBack));
+            returnCard.SetLines(s.noWayBack ? "CUT OFF" : MinutesText(s.returnMinutes), "back to habitat (estimate)", ReturnLastLine(s));
             returnCard.lines[0].color = ReturnColor(s.returnState);
             string work = s.taskMinutesAtNext > 0f ? "work there " + F(s.taskMinutesAtNext, "0") + " min" : "";
             if (s.arrived)

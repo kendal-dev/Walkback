@@ -67,6 +67,8 @@ namespace Walkback
             public float marginMinutes;
             /// <summary>Green, amber or red for the minutes back (HudEstimate.StateOf).</summary>
             public HudEstimate.ReturnState returnState;
+            /// <summary>v1.1: route meters from here to the plan's point of no return (TurnBackPoint), or -1 when the plan has none.</summary>
+            public float turnBackInMeters;
         }
 
         readonly SiteData site;
@@ -75,6 +77,9 @@ namespace Walkback
         /// <summary>Route meters from the habitat at every point of plan.Path.</summary>
         readonly float[] along;
         readonly bool[] workCharged;
+        /// <summary>v1.1: route meters of the plan's point of no return, or -1.</summary>
+        readonly float turnBackAt = -1f;
+        public float TurnBackAt { get { return turnBackAt; } }
 
         /// <summary>The leg being walked (index into plan.Legs).</summary>
         public int Leg { get; private set; }
@@ -95,6 +100,11 @@ namespace Walkback
             along = new float[Mathf.Max(count, 1)];
             for (int i = 1; i < count; i++) along[i] = along[i - 1] + Vector2.Distance(plan.Path[i - 1], plan.Path[i]);
             workCharged = new bool[plan != null ? plan.Legs.Count : 0];
+            if (site != null && returnMinutes != null && returnMinutes.Length == site.GridSize * site.GridSize)
+            {
+                TurnBackPoint.Result r = TurnBackPoint.Find(site, returnMinutes, plan);
+                if (r.found && r.pathIndex < along.Length) turnBackAt = along[r.pathIndex];
+            }
         }
 
         /// <summary>False when there is no plan to walk (no route, or no legs).</summary>
@@ -265,6 +275,7 @@ namespace Walkback
             float aboveReserve = plan.TankLiters - s.usedLiters - HudEstimate.ReserveLiters;
             s.marginMinutes = s.noWayBack ? 0f : HudEstimate.MarginMinutes(aboveReserve, s.returnLiters);
             s.returnState = s.noWayBack ? HudEstimate.ReturnState.NotCovered : HudEstimate.StateOf(aboveReserve, s.returnLiters);
+            s.turnBackInMeters = turnBackAt >= 0f ? Mathf.Max(0f, turnBackAt - RouteMeters) : -1f;
 
             // Where the next stop is from here: bearing and straight distance on the map, height from the relief.
             s.nextBearingDegrees = HudCompass.Bearing(here, s.nextPoint);
