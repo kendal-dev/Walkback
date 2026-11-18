@@ -106,6 +106,7 @@ namespace Walkback.EditorTools
                 (host == null || !host.text.StartsWith(StopPillars.TurnBackHereText) && host.color != StopPillars.TurnBackColor), host != null ? host.text : "");
             CheckTurnBackMidLeg(app, panel);
             CheckTurnBackOnVisor(app);
+            CheckReachOnStopCard(app, panel);
         }
 
         /// <summary>
@@ -177,6 +178,41 @@ namespace Walkback.EditorTools
             }
             app.stopPillars.ShowTurnBack(null, null, null);
             Check("Turn back mid-leg: taken away again", app.stopPillars.TurnBack == null);
+        }
+
+        /// <summary>v1.1: the stop card's first line: minutes back, or past the point of no return in red.</summary>
+        static void CheckReachOnStopCard(WalkbackApp app, MissionPanel panel)
+        {
+            SiteData site = app.terrain.Site;
+            int far = site.Stops.Length - 1;
+            app.SetWhatIfTank(100f);
+            app.SelectStop(far);
+            float back = app.terrain.ReturnMinutes[ReturnFallback.NodeOf(site, new Vector2(site.Stops[far].x, site.Stops[far].y))];
+            Check("Stop card: with a full tank it reads the meters and the RETURN layer's minutes back from the stop",
+                panel.stopBadge.text.EndsWith(HelmetHud.MinutesText(back) + " back on foot") && panel.stopBadge.color == WalkbackTheme.TextSoft, panel.stopBadge.text);
+
+            app.SetWhatIfTank(8f);
+            Canvas.ForceUpdateCanvases();
+            bool farLate = panel.stopBadge.text == "Out of reach at 8 % · turn back at the red pillar" && panel.stopBadge.color == WalkbackTheme.Danger;
+            bool fitsFar = panel.stopBadge.preferredWidth <= ((RectTransform)panel.stopBadge.transform).rect.width;
+            string farText = panel.stopBadge.text;
+            int first = -1;
+            foreach (MissionFallback.Leg leg in app.Plan.Legs) if (leg.LastPoint == app.TurnBack.pathIndex && leg.ToStop >= 0) first = leg.ToStop;
+            bool atWork = true, fitsWork = true;
+            string workText = "";
+            if (app.TurnBack.atStopWithoutWork && first >= 0)
+            {
+                app.SelectStop(first);
+                Canvas.ForceUpdateCanvases();
+                workText = panel.stopBadge.text;
+                atWork = workText == "At 8 %: no time for the work here · turn back" && panel.stopBadge.color == WalkbackTheme.Danger;
+                fitsWork = panel.stopBadge.preferredWidth <= ((RectTransform)panel.stopBadge.transform).rect.width;
+            }
+            Check("Stop card: at 8 % a stop past the point of no return says out of reach, and the stop where the work no longer fits says so, in red, on one line",
+                farLate && atWork && fitsFar && fitsWork, farText + " | " + workText);
+            app.SetWhatIfTank(100f);
+            Check("Stop card: back to a full tank the line is the minutes back again", panel.stopBadge.text.EndsWith(" back on foot"), panel.stopBadge.text);
+            app.SelectStop(-1);
         }
 
         /// <summary>v1.1: the visor while walking says how far the point of no return is.</summary>

@@ -391,6 +391,15 @@ namespace Walkback
             {
                 stopBadge.text = meters.ToString("0") + " m from the habitat in a straight line";
                 stopBadge.color = WalkbackTheme.TextSoft;
+                // v1.1: the walk back from there (the RETURN layer), or, when the plan does not fit its tank,
+                // whether this stop is past the point of no return.
+                string reach;
+                bool late;
+                if (ReachLine(boundApp, index, out reach, out late))
+                {
+                    stopBadge.text = reach;
+                    stopBadge.color = late ? WalkbackTheme.Danger : WalkbackTheme.TextSoft;
+                }
             }
             stopScience.text = string.IsNullOrEmpty(stop.science) ? "No science note for this stop in the data yet." : stop.science;
             stopTasks.text = TasksLine(stop.tasks);
@@ -407,6 +416,41 @@ namespace Walkback
             stopFooter.text = footerParts.Count > 0 ? string.Join("  ·  ", footerParts.ToArray()) : "No risk note or photo credit in the data yet.";
             // A picked stop has no photo: its 360° PHOTO button stays off.
             if (jumpButton != null) jumpButton.SetInteractable(!UserStops.IsUser(stop));
+        }
+
+        /// <summary>
+        /// v1.1: the stop card's first line. With the plan's point of no return before this stop: "Out of reach at 8 %
+        /// · turn back at the red pillar"; at this stop, with no time for its work: "At 8 %: no time for the work here
+        /// · turn back"; otherwise the meters and the minutes back on foot from there ("716 m straight · 14 min back
+        /// on foot"). False when there is nothing to read it from (no return map).
+        /// </summary>
+        public static bool ReachLine(WalkbackApp app, int index, out string line, out bool late)
+        {
+            line = null;
+            late = false;
+            if (app == null || app.terrain == null || app.terrain.Site == null || app.terrain.ReturnMinutes == null) return false;
+            SiteData site = app.terrain.Site;
+            if (index < 0 || index >= site.Stops.Length) return false;
+            StopInfo stop = site.Stops[index];
+            var at = new Vector2(stop.x, stop.y);
+            string tank = app.WhatIfTankPercent.ToString("0", System.Globalization.CultureInfo.InvariantCulture) + " %";
+            TurnBackPoint.Result r = app.TurnBack;
+            if (r.found && app.Plan != null)
+            {
+                foreach (MissionFallback.Leg leg in app.Plan.Legs)
+                {
+                    if (leg.ToStop != index) continue;
+                    if (leg.LastPoint > r.pathIndex) { line = "Out of reach at " + tank + " · turn back at the red pillar"; late = true; return true; }
+                    if (leg.LastPoint == r.pathIndex && r.atStopWithoutWork) { line = "At " + tank + ": no time for the work here · turn back"; late = true; return true; }
+                }
+            }
+            float back = app.terrain.ReturnMinutes[ReturnFallback.NodeOf(site, at)];
+            float meters = Vector2.Distance(at, site.Habitat);
+            line = float.IsInfinity(back) || float.IsNaN(back)
+                ? meters.ToString("0") + " m straight · no way back on foot"
+                : meters.ToString("0") + " m straight · " + HelmetHud.MinutesText(back) + " back on foot";
+            late = float.IsInfinity(back) || float.IsNaN(back);
+            return true;
         }
 
         /// <summary>The -5 / +5 buttons: shown only on a picked stop's card, each off at its end of the range.</summary>

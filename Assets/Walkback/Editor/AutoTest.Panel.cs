@@ -524,7 +524,8 @@ namespace Walkback.EditorTools
             if (!app.terrain.Site.StopsAreReal)
                 Check("Panel: a TEST STOP reads as test data", panel.stopBadge.text.Contains("TEST") && panel.stopBadge.color == WalkbackTheme.Watch, panel.stopBadge.text);
             else
-                Check("Panel: a real stop shows its distance to the habitat", panel.stopBadge.text.Contains(" m from the habitat"), panel.stopBadge.text);
+                Check("Panel: a real stop shows its distance to the habitat and the minutes back on foot from there",
+                    panel.stopBadge.text.Contains(" m straight · ") && panel.stopBadge.text.EndsWith(" back on foot"), panel.stopBadge.text);
 
             int jumped = -2;
             Action<int> listen = i => jumped = i;

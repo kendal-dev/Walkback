@@ -64,6 +64,8 @@ namespace Walkback
             if (Plan.Path.Count >= 2) ShowPlannedRoute(Plan.Path.ToArray(), animate);
             else ClearPlannedRoute();
             ShowPlanOnPanel();
+            // The stop card's first line reads the plan (minutes back, or out of reach): write it again.
+            if (panel != null && !panel.ShowingPreview) panel.ShowStop(SelectedStop);
             if (stopPillars != null)
                 stopPillars.ShowTurnBack(TurnBack.found ? TurnBack.point : (Vector2?)null,
                     "with " + WhatIfTankPercent.ToString("0") + " % of a tank · ESTIMATE", "with " + WhatIfTankPercent.ToString("0") + " %");
