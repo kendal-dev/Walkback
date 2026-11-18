@@ -40,6 +40,8 @@ namespace Walkback
         public Source CurrentSource { get; private set; }
         public IPointerTarget Hovered { get; private set; }
         public bool HasHit { get; private set; }
+        /// <summary>The collider under the ray this frame (null when it hits nothing).</summary>
+        public Collider HitCollider { get; private set; }
         public Vector3 HitPoint { get; private set; }
         public bool IsPressed { get; private set; }
         /// <summary>True from the frame a press starts on a target until it is released.</summary>
@@ -127,10 +129,12 @@ namespace Walkback
         {
             IPointerTarget target = null;
             HasHit = false;
+            HitCollider = null;
             if (raycast && Physics.Raycast(ray, out RaycastHit hit, MaxDistance, ~0, QueryTriggerInteraction.Collide))
             {
                 HasHit = true;
                 HitPoint = hit.point;
+                HitCollider = hit.collider;
                 target = Resolve(hit.collider);
             }
 

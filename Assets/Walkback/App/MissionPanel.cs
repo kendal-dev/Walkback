@@ -100,6 +100,11 @@ namespace Walkback
         /// <summary>The board to the left with the source line, the legend and the footer.</summary>
         public Transform sourceBoard;
         public RectTransform stopButtonRow;
+        /// <summary>v1.1: takes away the stops the astronaut picked on the map. Off while there are none.</summary>
+        public PanelButton clearStopsButton;
+        public const string ClearStopsText = "CLEAR";
+        /// <summary>The id of the stop behind each stop button (only the data's stops get a button).</summary>
+        readonly List<string> stopButtonIds = new List<string>();
         public Text stopsLabel;
         public Text stopName;
         public Text stopBadge;
@@ -207,6 +212,10 @@ namespace Walkback
             }
             app.StopSelected += OnStopSelected;
             app.StopPreviewed += OnStopPreviewed;
+            app.UserStopsChanged += OnUserStopsChanged;
+            if (clearStopsButton != null)
+                clearStopsButton.onClick = () => { if (boundApp != null) boundApp.ClearUserStops(); };
+            OnUserStopsChanged();
             BuildStopButtons(app.terrain != null && app.terrain.Site != null ? app.terrain.Site.Stops : new StopInfo[0]);
             if (jumpButton != null)
                 jumpButton.onClick = () => { if (boundApp != null && boundApp.SelectedStop >= 0) boundApp.RequestJump(boundApp.SelectedStop); };
@@ -223,6 +232,7 @@ namespace Walkback
                 if (boundApp.terrain != null) boundApp.terrain.LayerChanged -= OnLayerChanged;
                 boundApp.StopSelected -= OnStopSelected;
                 boundApp.StopPreviewed -= OnStopPreviewed;
+                boundApp.UserStopsChanged -= OnUserStopsChanged;
             }
             boundApp = null;
         }
@@ -240,6 +250,19 @@ namespace Walkback
         void OnStopSelected(int index)
         {
             ShowStop(index);
+        }
+
+        void OnUserStopsChanged()
+        {
+            if (clearStopsButton != null) clearStopsButton.SetInteractable(boundApp != null && boundApp.UserStopCount > 0);
+        }
+
+        /// <summary>Lights the button of the stop at this index (none if that stop has no button).</summary>
+        void LightStopButton(int index)
+        {
+            StopInfo[] stops = boundApp != null && boundApp.terrain != null && boundApp.terrain.Site != null ? boundApp.terrain.Site.Stops : null;
+            string id = stops != null && index >= 0 && index < stops.Length && stops[index] != null ? stops[index].id : null;
+            for (int i = 0; i < stopButtons.Count; i++) stopButtons[i].SetSelected(id != null && i < stopButtonIds.Count && stopButtonIds[i] == id);
         }
 
         /// <summary>First line of the stop card while the pointer is on a pillar that is not the selected stop.</summary>
@@ -270,8 +293,7 @@ namespace Walkback
             if (stopName == null) return;
             SiteData site = boundApp != null && boundApp.terrain != null ? boundApp.terrain.Site : null;
             if (site == null || index < 0 || index >= site.Stops.Length) return;
-            int selected = boundApp.SelectedStop;
-            for (int i = 0; i < stopButtons.Count; i++) stopButtons[i].SetSelected(i == selected);
+            LightStopButton(boundApp.SelectedStop);
             stopBadge.text = PreviewBadge;
             stopBadge.color = WalkbackTheme.Live;
             // The 360° PHOTO button jumps to the selected stop, not to this one: off while previewing.
@@ -292,7 +314,10 @@ namespace Walkback
         {
             foreach (var b in stopButtons) if (b != null) DestroySafe(b.gameObject);
             stopButtons.Clear();
+            stopButtonIds.Clear();
             if (stopButtonRow == null || stops == null) return;
+            // v1.1: the stops picked on the map have a pillar but no button; the buttons keep the data's stops.
+            stops = UserStops.Without(stops);
             int n = Mathf.Min(stops.Length, 4);
             if (n == 0) return;
             // Up to two buttons side by side; three or four go in two rows of two. A button is then never
@@ -307,8 +332,15 @@ namespace Walkback
                 string label = string.IsNullOrEmpty(stops[i].name) ? "Stop " + (i + 1) : stops[i].name;
                 var button = PanelButton.Create(stopButtonRow, "Stop" + i, label, font, uiMaterial, n <= 2 ? 30 : 28,
                     (i % columns) * (w + gap), (i / columns) * (ButtonHeight + gap), w, ButtonHeight);
-                button.onClick = () => { if (boundApp != null) boundApp.SelectStop(index); };
+                string id = stops[i].id;
+                button.onClick = () =>
+                {
+                    if (boundApp == null) return;
+                    int now = boundApp.terrain != null && boundApp.terrain.Site != null ? UserStops.IndexOf(boundApp.terrain.Site.Stops, id) : -1;
+                    boundApp.SelectStop(id != null && now >= 0 ? now : index);
+                };
                 stopButtons.Add(button);
+                stopButtonIds.Add(id);
             }
         }
 
@@ -319,7 +351,7 @@ namespace Walkback
             ShowingPreview = false;
             SiteData site = boundApp != null && boundApp.terrain != null ? boundApp.terrain.Site : null;
             StopInfo[] stops = site != null ? site.Stops : new StopInfo[0];
-            for (int i = 0; i < stopButtons.Count; i++) stopButtons[i].SetSelected(i == index);
+            LightStopButton(index);
 
             if (index < 0 || index >= stops.Length || stops[index] == null)
             {
@@ -477,6 +509,9 @@ namespace Walkback
             var row = new GameObject("StopButtons", typeof(RectTransform));
             stopButtonRow = (RectTransform)row.transform;
             Place(rect, stopButtonRow, 140, 24, 600, 2f * ButtonHeight + 12f);
+            // v1.1: under the STOPS label, takes away the stops picked on the map.
+            clearStopsButton = PanelButton.Create(rect, "ClearMyStops", ClearStopsText, font, uiMaterial, 28, 24, 24 + ButtonHeight + 12f, 114, ButtonHeight);
+            clearStopsButton.SetInteractable(false);
 
             // Stop card. Its last text (risk, photo credit) takes four lines for a stop with a photo credit
             // (Nevado Sajama): at three lines' height it ran 23 mm over the card's edge, down to the conditions.

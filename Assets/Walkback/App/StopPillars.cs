@@ -36,6 +36,7 @@ namespace Walkback
 
         public static readonly Color StopColor = WalkbackTheme.Watch;
         public static readonly Color HabitatColor = WalkbackTheme.Safe;
+        public static readonly Color UserStopColor = WalkbackTheme.Live;
 
         readonly List<PillarView> stops = new List<PillarView>();
         public PillarView Habitat { get; private set; }
@@ -64,7 +65,8 @@ namespace Walkback
             {
                 StopInfo stop = site.Stops[i];
                 string name = string.IsNullOrEmpty(stop.name) ? "Stop " + (i + 1) : stop.name;
-                var pillar = MakePillar(site, new Vector2(stop.x, stop.y), name, i, StopColor, StopRadiusMeters, font);
+                // A stop the astronaut picked on the map is blue, the data's stops are amber.
+                var pillar = MakePillar(site, new Vector2(stop.x, stop.y), name, i, UserStops.IsUser(stop) ? UserStopColor : StopColor, StopRadiusMeters, font);
                 // Stops a few meters apart (Valle de la Luna and Nevado Sajama are 10 m apart): stack the labels.
                 int near = 0;
                 for (int j = 0; j < i; j++)

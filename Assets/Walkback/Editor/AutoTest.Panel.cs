@@ -23,6 +23,7 @@ namespace Walkback.EditorTools
             CheckSourceBoard(app, panel);
             CheckPanelConditions(panel);
             CheckPanelTextFits(panel);
+            CheckUserStops(app, panel);
         }
 
         /// <summary>

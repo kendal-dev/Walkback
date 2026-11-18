@@ -22,6 +22,8 @@ namespace Walkback
             // The pointer first: the table controls ask it whether a press began on a button.
             if (pointer != null) pointer.Tick();
             if (tableControls != null) tableControls.Tick();
+            // v1.1: a short tap on the bare ground adds a stop of the astronaut's own.
+            TickMapTap();
         }
     }
 }

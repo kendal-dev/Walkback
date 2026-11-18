@@ -59,6 +59,9 @@ namespace Walkback
             if (recenterButton.gameObject.activeSelf != show) recenterButton.gameObject.SetActive(show);
         }
 
+        /// <summary>True while the map is being moved by the grip or by both hands (a tap on the map is not a tap then).</summary>
+        public bool Dragging { get { return gripDragging || twoHandActive; } }
+
         public float Zoom { get { return app != null && app.mapRoot != null ? app.mapRoot.localScale.x / baseScale : 1f; } }
 
         bool Ready { get { return app != null && app.mapRoot != null && app.table != null && !app.MapControlsLocked; } }
