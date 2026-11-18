@@ -104,6 +104,78 @@ namespace Walkback.EditorTools
             Check("Turn back: back to a full tank the red pillar goes away and the stop's tag line is its own again",
                 !app.TurnBack.found && app.stopPillars.TurnBack == null && app.stopPillars.TurnBackTagOnPillar == null &&
                 (host == null || !host.text.StartsWith(StopPillars.TurnBackHereText) && host.color != StopPillars.TurnBackColor), host != null ? host.text : "");
+            CheckTurnBackMidLeg(app, panel);
+        }
+
+        /// <summary>
+        /// The point of no return in the middle of a leg (never seen with Gale's four stops): one far stop with no
+        /// work and a tank at 8 %, on a copy of the site. Then the red pillar with its own label on the real map.
+        /// </summary>
+        static void CheckTurnBackMidLeg(WalkbackApp app, MissionPanel panel)
+        {
+            SiteData site = app.terrain.Site;
+            float[] home = app.terrain.ReturnMinutes;
+            // The walkable point farthest from the habitat (in minutes back), clear of the data's pillars.
+            int n = site.GridSize, best = -1;
+            for (int k = 0; k < n * n; k += 7)
+            {
+                if (float.IsInfinity(home[k]) || (best >= 0 && home[k] <= home[best])) continue;
+                Vector2 p = new Vector2((k % n) * site.NodeSpacing, site.SideMeters - (k / n) * site.NodeSpacing);
+                if (MissionFallback.Walkable(site, app.terrain.Slope, p) && UserStops.Refusal(site, p) == null) best = k;
+            }
+            if (best < 0) { Check("Turn back mid-leg: there is a far walkable point", false); return; }
+            Vector2 far = new Vector2((best % n) * site.NodeSpacing, site.SideMeters - (best / n) * site.NodeSpacing);
+            SiteData copy = site.CopyForPlanning();
+            copy.Stops = new[] { UserStops.Make(1, far) };
+            MissionFallback.Plan plan = MissionFallback.Make(copy, app.terrain.Slope, 8f);
+            TurnBackPoint.Result r = TurnBackPoint.Find(copy, home, plan);
+            float legMeters = plan.Legs.Count > 0 ? plan.Legs[0].Meters : 0f;
+            string note = TurnBackPoint.Note(r, 8f);
+            Check("Turn back mid-leg: one far stop with no work at 8 % gives a point in the middle of the way out, before that stop",
+                plan.HasRoute && r.found && !r.atStopWithoutWork && r.pathIndex > 0 && r.metersAlong > 0f && r.metersAlong < legMeters &&
+                note.Contains(" m along the route, before My stop 1"),
+                note + " (" + home[best].ToString("0") + " min back from the stop, leg " + legMeters.ToString("0") + " m)");
+            float available = plan.TankLiters - HudEstimate.ReserveLiters;
+            float backHere = home[ReturnFallback.NodeOf(copy, r.point)] * HudEstimate.WalkLitersPerMinute;
+            float backNext = home[ReturnFallback.NodeOf(copy, plan.Path[r.pathIndex + 1])] * HudEstimate.WalkLitersPerMinute;
+            Check("Turn back mid-leg: at the point the oxygen covers the way home, one point on it does not",
+                available - UsedAlong(plan, r.pathIndex, false) >= backHere - 0.01f && available - UsedAlong(plan, r.pathIndex + 1, false) < backNext);
+
+            // That point on the real map: a red pillar with its own TURN BACK BY HERE label, clear of the other labels and of the board.
+            app.stopPillars.ShowTurnBack(r.point, "with 8 % of a tank · ESTIMATE", "with 8 %");
+            PillarView red = app.stopPillars.TurnBack;
+            bool own = red != null && red.label != null && red.label.text == StopPillars.TurnBackText && app.stopPillars.TurnBackTagOnPillar == null;
+            Check("Turn back mid-leg: away from the pillars the red pillar has its own TURN BACK BY HERE label", own);
+            if (own)
+            {
+                Note("Turn back mid-leg: the pillar labels against the main board, with the red pillar's own label:");
+                CheckPillarLabelsAgainstBoard(app, panel);
+                var cam = app.desktopCamera;
+                Vector3 wasAt = cam.transform.position;
+                Quaternion wasLooking = cam.transform.rotation;
+                cam.transform.position = MissionPanel.UserEye;
+                cam.transform.rotation = Quaternion.LookRotation(app.mapRoot.position - MissionPanel.UserEye, Vector3.up);
+                app.stopPillars.FaceCamera(cam);
+                Canvas.ForceUpdateCanvases();
+                Rect mine = LabelViewRect(cam, red.labelRoot);
+                float worst = 0f;
+                string with = "none";
+                var others = new List<PillarView> { app.stopPillars.Habitat };
+                others.AddRange(app.stopPillars.Stops);
+                foreach (PillarView o in others)
+                {
+                    Rect b = LabelViewRect(cam, o.labelRoot);
+                    float w = Mathf.Min(mine.xMax, b.xMax) - Mathf.Max(mine.xMin, b.xMin), h = Mathf.Min(mine.yMax, b.yMax) - Mathf.Max(mine.yMin, b.yMin);
+                    if (w <= 0f || h <= 0f) continue;
+                    float share = w * h / Mathf.Max(1e-9f, Mathf.Min(mine.width * mine.height, b.width * b.height));
+                    if (share > worst) { worst = share; with = o.label.text; }
+                }
+                Check("Turn back mid-leg: the red label covers no other label from the user's place (under 5 %)", worst < 0.05f,
+                    (worst * 100f).ToString("F0") + " % (" + with + "), slid " + app.stopPillars.TurnBackSlide.ToString("0.0") + " label widths");
+                cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+            }
+            app.stopPillars.ShowTurnBack(null, null, null);
+            Check("Turn back mid-leg: taken away again", app.stopPillars.TurnBack == null);
         }
 
         /// <summary>Liters used walking the plan up to a path point (work of the stops passed included; with <paramref name="withWorkHere"/>, the work at that point's stop too).</summary>

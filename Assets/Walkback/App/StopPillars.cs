@@ -51,6 +51,11 @@ namespace Walkback
         string hostTagWas;
         Color hostTagColorWas;
         public const string TurnBackHereText = "TURN BACK HERE";
+        /// <summary>
+        /// The red pillar is this much of a stop's height, so its own label sits under the stops' labels; and the
+        /// other labels never go up for it (lifting them for it put Altadena's over the main board's texts).
+        /// </summary>
+        public const float TurnBackHeightShare = 0.45f;
 
         readonly List<PillarView> stops = new List<PillarView>();
         public PillarView Habitat { get; private set; }
@@ -162,7 +167,7 @@ namespace Walkback
                 TurnBackTagOnPillar.text = TurnBackHereText + " · " + tankText;
                 TurnBackTagOnPillar.color = TurnBackColor;
             }
-            else TurnBack.labelStack = highest + 1;
+            TurnBack.heightMeters = PillarHeightMeters * TurnBackHeightShare;
             TurnBack.SetGrowth(1f);
         }
 
@@ -183,10 +188,64 @@ namespace Walkback
         /// </summary>
         public void FaceCamera(Camera cam)
         {
+            FaceStops(cam);
+            PlaceTurnBackLabel(cam);
+        }
+
+        /// <summary>The red label slides sideways (as the camera sees it) by up to this many label widths to get clear of the others.</summary>
+        public static readonly float[] TurnBackSlides = { 0f, 0.6f, -0.6f, 1.2f, -1.2f, 1.8f, -1.8f };
+        /// <summary>How far the red label slid this frame, in label widths (the test reads it).</summary>
+        public float TurnBackSlide { get; private set; }
+
+        /// <summary>
+        /// After the other labels are placed, the red pillar's own label (if any) goes to the first sideways
+        /// place where it covers none of them. The others never move for it.
+        /// </summary>
+        void PlaceTurnBackLabel(Camera cam)
+        {
+            TurnBackSlide = 0f;
+            if (TurnBack == null || TurnBack.labelRoot == null) return;
+            TurnBack.viewLift = 0f;
+            TurnBack.FaceCamera(cam);
+            if (cam == null || !TurnBack.labelRoot.gameObject.activeInHierarchy) return;
+            var others = new List<Rect>();
+            if (Habitat != null && Habitat.labelRoot != null && Habitat.labelRoot.gameObject.activeInHierarchy) others.Add(ScreenBox(cam, Habitat.labelRoot));
+            foreach (var p in stops)
+                if (p.labelRoot != null && p.labelRoot.gameObject.activeInHierarchy) others.Add(ScreenBox(cam, p.labelRoot));
+            Vector3 home = TurnBack.labelRoot.position;
+            float width = TurnBack.labelRoot.sizeDelta.x * Mathf.Abs(TurnBack.labelRoot.lossyScale.x);
+            foreach (float slide in TurnBackSlides)
+            {
+                TurnBack.labelRoot.position = home + cam.transform.right * (slide * width);
+                Rect mine = ScreenBox(cam, TurnBack.labelRoot);
+                bool clear = true;
+                foreach (Rect o in others) if (mine.Overlaps(o)) { clear = false; break; }
+                if (clear) { TurnBackSlide = slide; return; }
+            }
+            TurnBack.labelRoot.position = home;   // nowhere clear: it stays over its pillar
+        }
+
+        static readonly Vector3[] corners = new Vector3[4];
+
+        /// <summary>A label's box on the camera's screen (viewport units).</summary>
+        static Rect ScreenBox(Camera cam, RectTransform label)
+        {
+            label.GetWorldCorners(corners);
+            float x0 = float.MaxValue, y0 = float.MaxValue, x1 = float.MinValue, y1 = float.MinValue;
+            foreach (Vector3 c in corners)
+            {
+                Vector3 v = cam.WorldToViewportPoint(c);
+                x0 = Mathf.Min(x0, v.x); x1 = Mathf.Max(x1, v.x);
+                y0 = Mathf.Min(y0, v.y); y1 = Mathf.Max(y1, v.y);
+            }
+            return Rect.MinMaxRect(x0, y0, x1, y1);
+        }
+
+        void FaceStops(Camera cam)
+        {
             all.Clear();
             if (Habitat != null) all.Add(Habitat);
             all.AddRange(stops);
-            if (TurnBack != null) all.Add(TurnBack);
             int count = all.Count;
             if (viewStacks.Length != count) viewStacks = new int[count];
             foreach (var p in all)
