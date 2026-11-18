@@ -30,6 +30,8 @@ namespace Walkback
             public int version = Version;
             public string site = "";
             public Saved[] stops = new Saved[0];
+            /// <summary>v1.1: the visiting order, every stop's id (the data's and the picked), as the astronaut left it.</summary>
+            public string[] order = new string[0];
         }
 
         public static string SiteKey(SiteData site)
@@ -44,7 +46,9 @@ namespace Walkback
             if (site != null && site.Stops != null)
                 foreach (StopInfo s in site.Stops)
                     if (UserStops.IsUser(s)) list.Add(new Saved { id = s.id, name = s.name, x = s.x, y = s.y, minutes = UserStops.Minutes(s) });
-            return new Contents { site = SiteKey(site), stops = list.ToArray() };
+            var order = new List<string>();
+            if (site != null && site.Stops != null) foreach (StopInfo s in site.Stops) if (s != null) order.Add(s.id);
+            return new Contents { site = SiteKey(site), stops = list.ToArray(), order = order.ToArray() };
         }
 
         /// <summary>Writes the file (an empty list when there are none). Returns false and the reason if it could not.</summary>
@@ -67,22 +71,54 @@ namespace Walkback
         /// <summary>The file's stops for this site, or none (no file, another site, another version, or unreadable).</summary>
         public static Saved[] Load(string folder, SiteData site, out string why)
         {
+            Contents c = LoadContents(folder, site, out why);
+            return c != null ? c.stops : new Saved[0];
+        }
+
+        /// <summary>The file's contents for this site, or null (no file, another site, another version, or unreadable).</summary>
+        public static Contents LoadContents(string folder, SiteData site, out string why)
+        {
             why = null;
             try
             {
                 string path = Path.Combine(folder, FileName);
-                if (!File.Exists(path)) { why = "no file"; return new Saved[0]; }
+                if (!File.Exists(path)) { why = "no file"; return null; }
                 var contents = JsonUtility.FromJson<Contents>(File.ReadAllText(path));
-                if (contents == null || contents.stops == null) { why = "unreadable"; return new Saved[0]; }
-                if (contents.version != Version) { why = "version " + contents.version; return new Saved[0]; }
-                if (contents.site != SiteKey(site)) { why = "made for another site (" + contents.site + ")"; return new Saved[0]; }
-                return contents.stops;
+                if (contents == null || contents.stops == null) { why = "unreadable"; return null; }
+                if (contents.version != Version) { why = "version " + contents.version; return null; }
+                if (contents.site != SiteKey(site)) { why = "made for another site (" + contents.site + ")"; return null; }
+                if (contents.order == null) contents.order = new string[0];
+                return contents;
             }
             catch (Exception e)
             {
                 why = e.GetType().Name;
-                return new Saved[0];
+                return null;
             }
+        }
+
+        /// <summary>
+        /// The stops in the saved order when it names exactly the same stops (same ids, each once); otherwise the
+        /// stops as they are (a data stop added or gone since: the tap's order stays).
+        /// </summary>
+        public static StopInfo[] InOrder(StopInfo[] stops, string[] order)
+        {
+            if (stops == null || order == null || order.Length != stops.Length) return stops;
+            var byId = new Dictionary<string, StopInfo>();
+            foreach (StopInfo s in stops)
+            {
+                if (s == null || s.id == null || byId.ContainsKey(s.id)) return stops;
+                byId[s.id] = s;
+            }
+            var result = new StopInfo[order.Length];
+            var used = new HashSet<string>();
+            for (int i = 0; i < order.Length; i++)
+            {
+                StopInfo s;
+                if (order[i] == null || !byId.TryGetValue(order[i], out s) || !used.Add(order[i])) return stops;
+                result[i] = s;
+            }
+            return result;
         }
     }
 }

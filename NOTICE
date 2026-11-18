@@ -358,7 +358,8 @@ The time at Gale (Assets/Walkback/App/MarsClock.cs)
   seasonal/diurnal climate studies", Planetary and Space Science 48,
   215-235; https://www.giss.nasa.gov/tools/mars24/help/algorithm.html
   Written from the published steps (no code copied). The app uses it for
-  the local mean solar time (LMST), the season (Ls), Curiosity's sol, and
+  the local mean solar time (LMST), the season (Ls; southern seasons by
+  Ls quadrant, Ls 180-360 the dusty season), Curiosity's sol, and
   sunrise and sunset at the center of the Gale square (4.807 S,
   137.381 E). The automatic test checks it against five days of the
   Curiosity REMS weather feed (NASA/JPL-Caltech/CAB), sols 100 to 4995:

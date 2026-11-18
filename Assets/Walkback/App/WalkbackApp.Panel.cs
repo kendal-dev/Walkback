@@ -74,6 +74,7 @@ namespace Walkback
         public void RefreshMarsClock()
         {
             if (!AtGale || panel == null) return;
+            panel.ShowLiveConditionLine(MarsClock.SeasonPrefix, MarsClock.SeasonLine(ClockUtc(), terrain.Site.Info.centerLon));
             panel.ShowLiveDaylight(MarsClock.DaylightLine(ClockUtc(), terrain.Site.Info.centerLon, terrain.Site.Info.centerLat));
             string dark = DarkNoteNow();
             if (dark != lastDarkNote) ShowPlanOnPanel();

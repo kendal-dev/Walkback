@@ -107,6 +107,11 @@ namespace Walkback
         public PanelButton moreMinutesButton;
         /// <summary>v1.1: on a picked stop's card, in the place of 360° PHOTO (a picked stop has no photo): takes that stop away.</summary>
         public PanelButton removeStopButton;
+        /// <summary>v1.1: on a picked stop's card, visit it one stop earlier / later.</summary>
+        public PanelButton earlierButton;
+        public PanelButton laterButton;
+        /// <summary>v1.1: "visit 2 of 5", next to EARLIER / LATER.</summary>
+        public Text orderText;
         public const string RemoveStopText = "REMOVE";
         public const string ClearStopsText = "CLEAR";
         /// <summary>v1.1: CLEAR takes every picked stop away, so the first press only asks; a second one within this time clears.</summary>
@@ -255,6 +260,10 @@ namespace Walkback
                 clearStopsButton.onClick = PressClear;
             if (lessMinutesButton != null)
                 lessMinutesButton.onClick = () => { if (boundApp != null) boundApp.ChangeUserStopMinutes(boundApp.SelectedStop, -UserStops.StepMinutes); };
+            if (earlierButton != null)
+                earlierButton.onClick = () => { if (boundApp != null) boundApp.MoveUserStop(boundApp.SelectedStop, -1); };
+            if (laterButton != null)
+                laterButton.onClick = () => { if (boundApp != null) boundApp.MoveUserStop(boundApp.SelectedStop, 1); };
             if (removeStopButton != null)
                 removeStopButton.onClick = () => { if (boundApp != null) boundApp.RemoveUserStop(boundApp.SelectedStop); };
             if (moreMinutesButton != null)
@@ -447,6 +456,14 @@ namespace Walkback
             if (!string.IsNullOrEmpty(stop.photoCredit)) footerParts.Add("Photo: " + stop.photoCredit);
             if (string.IsNullOrEmpty(stop.panorama)) footerParts.Add("No panorama for this stop yet");
             stopFooter.text = footerParts.Count > 0 ? string.Join("  ·  ", footerParts.ToArray()) : "No risk note or photo credit in the data yet.";
+            // A picked stop's last row is EARLIER / LATER and its place in the order (it has no risk note or photo).
+            if (UserStops.IsUser(stop))
+            {
+                stopFooter.text = "";
+                if (orderText != null) orderText.text = "visit " + (index + 1) + " of " + stops.Length;
+                if (earlierButton != null) earlierButton.SetInteractable(index > 0);
+                if (laterButton != null) laterButton.SetInteractable(index < stops.Length - 1);
+            }
             // A picked stop has no photo: its 360° PHOTO button stays off.
             if (jumpButton != null) jumpButton.SetInteractable(!UserStops.IsUser(stop));
         }
@@ -494,6 +511,9 @@ namespace Walkback
             moreMinutesButton.gameObject.SetActive(show);
             // REMOVE takes the place of 360° PHOTO on a picked stop's card.
             if (removeStopButton != null) removeStopButton.gameObject.SetActive(show);
+            if (earlierButton != null) earlierButton.gameObject.SetActive(show);
+            if (laterButton != null) laterButton.gameObject.SetActive(show);
+            if (orderText != null) orderText.gameObject.SetActive(show);
             if (jumpButton != null) jumpButton.gameObject.SetActive(!show);
             if (!show || stop == null) return;
             float m = UserStops.Minutes(stop);
@@ -536,10 +556,16 @@ namespace Walkback
         /// <summary>v1.1: the card's daylight line replaced by today's, computed for Gale (MarsClock).</summary>
         public void ShowLiveDaylight(string line)
         {
+            ShowLiveConditionLine(MarsClock.DaylightPrefix, line);
+        }
+
+        /// <summary>v1.1: the card's line that starts with <paramref name="prefix"/> replaced by <paramref name="line"/> (nothing if it has none).</summary>
+        public void ShowLiveConditionLine(string prefix, string line)
+        {
             if (conditionsText == null || !ConditionsHaveData || string.IsNullOrEmpty(line)) return;
             string[] lines = conditionsText.text.Split('\n');
             for (int i = 0; i < lines.Length; i++)
-                if (lines[i].StartsWith(MarsClock.DaylightPrefix, System.StringComparison.Ordinal)) lines[i] = line;
+                if (lines[i].StartsWith(prefix, System.StringComparison.Ordinal)) lines[i] = line;
             conditionsText.text = string.Join("\n", lines);
         }
 
@@ -656,6 +682,12 @@ namespace Walkback
             moreMinutesButton.gameObject.SetActive(false);
             removeStopButton = PanelButton.Create(rect, "RemoveMyStop", RemoveStopText, font, uiMaterial, 30, 464, 266, 250, ButtonHeight);
             removeStopButton.gameObject.SetActive(false);
+            earlierButton = PanelButton.Create(rect, "EarlierMyStop", "EARLIER", font, uiMaterial, 28, 54, 664, 190, ButtonHeight);
+            laterButton = PanelButton.Create(rect, "LaterMyStop", "LATER", font, uiMaterial, 28, 256, 664, 190, ButtonHeight);
+            orderText = AddText(rect, "MyStopOrder", "visit 1 of 1", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 464, 694, 250, 40);
+            earlierButton.gameObject.SetActive(false);
+            laterButton.gameObject.SetActive(false);
+            orderText.gameObject.SetActive(false);
             stopFooter = AddText(rect, "StopFooter", "Task minutes count in time and oxygen.", font, uiMaterial, 28, FontStyle.Normal, WalkbackTheme.TextSoft, 54, 664, 660, 134);
             stopFooter.alignment = TextAnchor.UpperLeft;
             jumpButton.SetInteractable(false);

@@ -77,6 +77,14 @@ namespace Walkback.EditorTools
                 text.Contains(MarsClock.DaylightPrefix) && text.Contains("LMST (Mars24)") && !text.Contains("REMS sol 4404") &&
                 panel.conditionsText.preferredHeight <= box + 6f,
                 text.Split('\n')[Array.FindIndex(text.Split('\n'), l => l.StartsWith(MarsClock.DaylightPrefix))] + " (" + panel.conditionsText.preferredHeight.ToString("0") + "/" + box.ToString("0") + " px)");
+            string seasonLine = Array.Find(text.Split('\n'), l => l.StartsWith(MarsClock.SeasonPrefix));
+            double lsNow = MarsClock.At(morning, lon).ls;
+            Check("Mars clock: the season line is today's (Ls and season from Mars24), not the REMS record of a Mars year ago",
+                seasonLine != null && seasonLine.Contains("(Mars24)") && seasonLine.Contains("Ls " + lsNow.ToString("0") + "°") && !text.Contains("a Mars year ago"),
+                seasonLine);
+            Check("Mars clock: the seasons by Ls (southern hemisphere; dusty Ls 180-360)",
+                MarsClock.SeasonOf(20).StartsWith("southern autumn, the low-dust") && MarsClock.SeasonOf(120).StartsWith("southern winter") &&
+                MarsClock.SeasonOf(200).StartsWith("southern spring, the dusty") && MarsClock.SeasonOf(341).StartsWith("southern summer, the dusty"));
             Check("Mars clock: leaving at 08:00 LMST the 2 h 55 min plan fits the daylight: the verdict's note is the usual one",
                 app.DarkNoteNow() == null && panel.verdictNote.text.StartsWith("ESTIMATE"), panel.verdictNote.text);
 

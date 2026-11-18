@@ -133,6 +133,25 @@ namespace Walkback
         }
 
         public const string DaylightPrefix = "Daylight: ";
+        public const string SeasonPrefix = "Season: ";
+
+        /// <summary>
+        /// The season at Gale (southern hemisphere) for a solar longitude: Ls 0-90 southern autumn, 90-180 winter,
+        /// 180-270 spring, 270-360 summer; Ls 180-360, around perihelion, is the dusty season, Ls 0-180 the low-dust one.
+        /// </summary>
+        public static string SeasonOf(double ls)
+        {
+            double l = Mod(ls, 360.0);
+            string season = l < 90.0 ? "southern autumn" : l < 180.0 ? "southern winter" : l < 270.0 ? "southern spring" : "southern summer";
+            return season + (l < 180.0 ? ", the low-dust season" : ", the dusty season");
+        }
+
+        /// <summary>The conditions card's season line, computed for now: "Season: Ls 37°, southern autumn, the low-dust season (Mars24)".</summary>
+        public static string SeasonLine(DateTime utc, double eastLongitude)
+        {
+            double ls = At(utc, eastLongitude).ls;
+            return SeasonPrefix + "Ls " + ls.ToString("0", CultureInfo.InvariantCulture) + "°, " + SeasonOf(ls) + " (Mars24)";
+        }
 
         /// <summary>
         /// The verdict card's note when a plan started now would not fit in today's daylight: it is night at

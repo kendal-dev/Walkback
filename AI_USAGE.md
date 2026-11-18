@@ -90,3 +90,4 @@ Work on the next version, kept on the branch `v1.1` so that `main`, the release 
 - **Picked stops and the point of no return on the visor's and the wrist's maps, a mission test with a picked stop, and the README note for the branch** (Claude Code, Opus 5.5).
 - **The WHAT IF sign for hands, the stop card's reach line and CLEAR's confirmation** (Claude Code, Opus 5.5; checked by the automatic test).
 - **The time at Gale (MarsClock)**: Claude Code wrote the Mars24 steps from the published algorithm, checked them first in a Python script against the REMS feed the data session had downloaded, then in C# with the automatic test (NOTICE section 8).
+- **EARLIER / LATER for picked stops (order kept in my_stops.json) and today's season from Mars24** (Claude Code, Opus 5.5; checked by the automatic test).
