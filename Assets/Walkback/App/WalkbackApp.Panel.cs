@@ -54,6 +54,7 @@ namespace Walkback
 
         partial void UpdatePanelPiece()
         {
+            if (panel != null) panel.TickClearConfirm();
             // The charts fill in step with the route drawing itself on the map (2.5 s); after that this does nothing.
             if (panel == null || panel.charts == null || !panel.charts.HasPlan || !panel.gameObject.activeInHierarchy) return;
             panel.charts.SetProgress(routeView != null && routeView.HasRoute ? routeView.Progress : 1f);

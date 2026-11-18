@@ -184,6 +184,18 @@ namespace Walkback
             WalkbackLog.Info("What if: tank at " + WhatIfTankPercent.ToString("0") + " %");
         }
 
+        /// <summary>
+        /// v1.1: the WHAT IF sign by the table (hands have no thumbstick). Same steps and the same rules as the
+        /// stick click: not while the map is locked, during a fade or in the first second after the mission.
+        /// Returns true if it changed the tank.
+        /// </summary>
+        public bool WhatIfFromSign()
+        {
+            if (!WhatIfAllowed(MapControlsLocked, mission != null && mission.Fading, Time.unscaledTime - missionSeenAt) || SuitsLive) return false;
+            NextWhatIf();
+            return true;
+        }
+
         /// <summary>After the mission, the WHAT IF button waits this long before it answers again.</summary>
         public const float WhatIfQuietSeconds = 1f;
         float missionSeenAt = -10f;

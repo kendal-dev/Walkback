@@ -139,6 +139,10 @@ namespace Walkback.EditorTools
 
             // CLEAR: the data's stops and their plan come back.
             panel.clearStopsButton.OnPointerClick(panel.clearStopsButton.transform.position);
+            bool asked = panel.ClearArmed && panel.clearStopsButton.label.text == MissionPanel.ClearConfirmText && UserStops.Count(site.Stops) > 0;
+            Check("My stops: the first press of CLEAR only asks (SURE?) and takes nothing away", asked,
+                panel.clearStopsButton.label.text + ", " + UserStops.Count(site.Stops) + " picked");
+            panel.clearStopsButton.OnPointerClick(panel.clearStopsButton.transform.position);
             app.UserStopsChanged -= listen;
             Check("My stops: CLEAR takes them away; the data's stops, their plan and their pillars come back, CLEAR is off",
                 site.Stops.Length == original.Length && site.Stops.Select(s => s.id).SequenceEqual(original.Select(s => s.id)) &&

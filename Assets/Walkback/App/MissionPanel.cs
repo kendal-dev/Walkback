@@ -59,7 +59,7 @@ namespace Walkback
         {
             "CONTROLS",
             "LAYERS · point at a button and press",
-            "WHAT IF · click the left stick",
+            "WHAT IF · its sign, or left stick",
             "MISSION · START MISSION, or left menu",
             "JUMP · NEXT STOP sign, or left grip",
             "MAP · X: in the air / on the wrist",
@@ -109,6 +109,38 @@ namespace Walkback
         public PanelButton removeStopButton;
         public const string RemoveStopText = "REMOVE";
         public const string ClearStopsText = "CLEAR";
+        /// <summary>v1.1: CLEAR takes every picked stop away, so the first press only asks; a second one within this time clears.</summary>
+        public const string ClearConfirmText = "SURE?";
+        public const float ClearConfirmSeconds = 3f;
+        float clearArmedUntil = -1f;
+        /// <summary>True while CLEAR waits for its second press.</summary>
+        public bool ClearArmed { get { return clearArmedUntil > Time.realtimeSinceStartup; } }
+
+        /// <summary>The CLEAR button: first press asks (SURE?), a second within ClearConfirmSeconds clears.</summary>
+        public void PressClear()
+        {
+            if (boundApp == null) return;
+            if (ClearArmed)
+            {
+                DisarmClear();
+                boundApp.ClearUserStops();
+                return;
+            }
+            clearArmedUntil = Time.realtimeSinceStartup + ClearConfirmSeconds;
+            if (clearStopsButton != null && clearStopsButton.label != null) clearStopsButton.label.text = ClearConfirmText;
+        }
+
+        void DisarmClear()
+        {
+            clearArmedUntil = -1f;
+            if (clearStopsButton != null && clearStopsButton.label != null) clearStopsButton.label.text = ClearStopsText;
+        }
+
+        /// <summary>Every frame (WalkbackApp.UpdatePanelPiece): an unanswered SURE? goes back to CLEAR.</summary>
+        public void TickClearConfirm()
+        {
+            if (clearArmedUntil > 0f && !ClearArmed) DisarmClear();
+        }
         /// <summary>The id of the stop behind each stop button (only the data's stops get a button).</summary>
         readonly List<string> stopButtonIds = new List<string>();
         public Text stopsLabel;
@@ -220,7 +252,7 @@ namespace Walkback
             app.StopPreviewed += OnStopPreviewed;
             app.UserStopsChanged += OnUserStopsChanged;
             if (clearStopsButton != null)
-                clearStopsButton.onClick = () => { if (boundApp != null) boundApp.ClearUserStops(); };
+                clearStopsButton.onClick = PressClear;
             if (lessMinutesButton != null)
                 lessMinutesButton.onClick = () => { if (boundApp != null) boundApp.ChangeUserStopMinutes(boundApp.SelectedStop, -UserStops.StepMinutes); };
             if (removeStopButton != null)
@@ -266,6 +298,7 @@ namespace Walkback
 
         void OnUserStopsChanged()
         {
+            if (boundApp == null || boundApp.UserStopCount == 0) DisarmClear();
             if (clearStopsButton != null) clearStopsButton.SetInteractable(boundApp != null && boundApp.UserStopCount > 0);
         }
 

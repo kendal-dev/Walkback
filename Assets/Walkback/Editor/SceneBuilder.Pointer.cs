@@ -12,6 +12,9 @@ namespace Walkback.EditorTools
         /// <summary>The RECENTER sign: near the front-right corner of the map, tilted up toward the user.</summary>
         public static readonly Vector3 RecenterButtonPosition = new Vector3(0.42f, TableHeight + 0.05f, 0.40f);
         public static readonly Vector2 RecenterButtonSize = new Vector2(0.22f, 0.075f);
+        /// <summary>v1.1: the WHAT IF sign, at the front-left corner (RECENTER's mirror): hands have no thumbstick to click.</summary>
+        public const string WhatIfButtonName = "WhatIfButton";
+        public static readonly Vector3 WhatIfButtonPosition = new Vector3(-0.42f, TableHeight + 0.05f, 0.40f);
 
         static partial void BuildPointer(WalkbackApp app)
         {
@@ -82,6 +85,11 @@ namespace Walkback.EditorTools
             recenter.transform.position = RecenterButtonPosition;
             recenter.transform.rotation = Quaternion.Euler(50f, 0f, 0f);
             controls.recenterButton = recenter;
+
+            var whatIf = PointerButton.Create(WhatIfButtonName, "WHAT IF", RecenterButtonSize, plateMaterial, uiMaterial);
+            whatIf.transform.position = WhatIfButtonPosition;
+            whatIf.transform.rotation = Quaternion.Euler(50f, 0f, 0f);
+            controls.whatIfButton = whatIf;
 
             app.pointer = pointer;
             app.tableControls = controls;

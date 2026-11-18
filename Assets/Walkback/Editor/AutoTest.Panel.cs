@@ -28,6 +28,7 @@ namespace Walkback.EditorTools
             CheckSuits(app, panel);
             CheckTurnBack(app, panel);
             CheckMissionWithMyStop(app, panel);
+            CheckWhatIfSign(app, panel);
         }
 
         /// <summary>

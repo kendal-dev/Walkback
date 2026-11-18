@@ -27,6 +27,8 @@ namespace Walkback
         public WalkbackApp app;
         public Pointer pointer;
         public PointerButton recenterButton;
+        /// <summary>v1.1: the WHAT IF sign by the table (the stick click's twin, for hands).</summary>
+        public PointerButton whatIfButton;
         /// <summary>mapRoot scale with the map 1 m wide on the table (set when the scene is built).</summary>
         public float baseScale = 0.001f;
 
@@ -45,6 +47,7 @@ namespace Walkback
             app = owner;
             rig = app != null && app.cameraRig != null ? app.cameraRig.GetComponent<OVRCameraRig>() : null;
             if (recenterButton != null) recenterButton.Clicked = RecenterFromHead;
+            if (whatIfButton != null) whatIfButton.Clicked = () => { if (app != null) app.WhatIfFromSign(); };
         }
 
         /// <summary>
@@ -54,9 +57,12 @@ namespace Walkback
         /// </summary>
         public void SyncRecenterSign()
         {
-            if (recenterButton == null || app == null || app.table == null) return;
+            if (app == null || app.table == null) return;
             bool show = app.table.gameObject.activeSelf;
-            if (recenterButton.gameObject.activeSelf != show) recenterButton.gameObject.SetActive(show);
+            if (recenterButton != null && recenterButton.gameObject.activeSelf != show) recenterButton.gameObject.SetActive(show);
+            // The WHAT IF sign hides with the table too, and while a SUITS server sets the tank.
+            bool whatIf = show && !app.SuitsLive;
+            if (whatIfButton != null && whatIfButton.gameObject.activeSelf != whatIf) whatIfButton.gameObject.SetActive(whatIf);
         }
 
         /// <summary>True while the map is being moved by the grip or by both hands (a tap on the map is not a tap then).</summary>

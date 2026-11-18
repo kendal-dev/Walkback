@@ -28,7 +28,7 @@ Built by team MARSXR for the NASA International Space Apps Challenge 2026, Santa
 > NASA does not endorse this project. No NASA logo or insignia is used.
 > Built with AI assistance (Claude Code; Codex and Antigravity for parts of the web page): see [AI_USAGE.md](AI_USAGE.md).
 
-> **This is the `v1.1` branch, work in progress.** What NASA judges is version 1.0: the release `v1.0-submission` and the `main` branch, which this branch does not change. Version 1.1 adds, so far without being seen in the headset: a preview when pointing at a stop's pillar; stops the astronaut adds by tapping the map, with their minutes of work, REMOVE and CLEAR, kept between sessions; a card over the ground with the minutes back and the slope; the point of no return as a red pillar, on the visor's and the wrist's maps and as "turn back in N m" on the visor; planning on a worker thread; and an optional link to a NASA SUITS telemetry server (off by default). Every number is still the plan B estimate. The full list and what to check in the headset: [CHANGELOG-v1.1.md](CHANGELOG-v1.1.md).
+> **This is the `v1.1` branch, work in progress.** What NASA judges is version 1.0: the release `v1.0-submission` and the `main` branch, which this branch does not change. Version 1.1 adds, so far without being seen in the headset: a preview when pointing at a stop's pillar; a WHAT IF sign by the table, so the WHAT IF works with hands; stops the astronaut adds by tapping the map, with their minutes of work, REMOVE and CLEAR, kept between sessions; a card over the ground with the minutes back and the slope; the point of no return as a red pillar, on the visor's and the wrist's maps and as "turn back in N m" on the visor; planning on a worker thread; and an optional link to a NASA SUITS telemetry server (off by default). Every number is still the plan B estimate. The full list and what to check in the headset: [CHANGELOG-v1.1.md](CHANGELOG-v1.1.md).
 
 ---
 
@@ -191,7 +191,7 @@ Use exactly these versions (newer ones were not tested):
 
 ## Automatic test (no headset)
 
-The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it builds the scene, loads the Gale package, runs the route, verdict, HUD, panel, pointer, globe and mission-mode checks and saves screenshots in `TestOutput/`. Last count: **424 checks, all passing (15 Nov 2026, run again on the commit of the v1.0-submission release)**. On the `v1.1` branch: **513 checks, all passing (18 Nov 2026)**.
+The project carries its own test (`Assets/Walkback/Editor/AutoTest*.cs`): it builds the scene, loads the Gale package, runs the route, verdict, HUD, panel, pointer, globe and mission-mode checks and saves screenshots in `TestOutput/`. Last count: **424 checks, all passing (15 Nov 2026, run again on the commit of the v1.0-submission release)**. On the `v1.1` branch: **522 checks, all passing (18 Nov 2026)**.
 
 - Unity open: menu *Walkback > Run Auto Test*.
 - Unity closed: `Unity.exe -batchmode -projectPath . -executeMethod Walkback.EditorTools.AutoTest.RunBatch -logFile TestOutput/unity.log`
