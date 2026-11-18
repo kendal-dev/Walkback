@@ -92,6 +92,16 @@ namespace Walkback
         public bool ApplySuitsReading(SuitsTss.Reading reading, DateTime readUtc, float now)
         {
             SuitsLast = reading;
+            // On Mars the walk follows the plan it started with (MissionProgress keeps that plan's tank): a new
+            // plan under it would make the board and the visor disagree. The reading waits for the table.
+            if (MissionActive)
+            {
+                if (!suitsDeferred) WalkbackLog.Info("SUITS TSS: reading kept for the table (the mission keeps its plan)");
+                suitsDeferred = true;
+                deferredReading = reading;
+                deferredAt = readUtc;
+                return false;
+            }
             bool first = !SuitsLive;
             bool moved = Mathf.Abs(reading.primaryO2 - WhatIfTankPercent) >= SuitsReplanPercent;
             if (!first && (!moved || now - suitsPlannedAt < SuitsReplanSeconds)) return false;
@@ -102,10 +112,30 @@ namespace Walkback
             return true;
         }
 
+        bool suitsDeferred;
+        SuitsTss.Reading deferredReading;
+        DateTime deferredAt;
+
+        /// <summary>True while a reading taken during the mission waits for the table.</summary>
+        public bool SuitsReadingWaiting { get { return suitsDeferred; } }
+
+        /// <summary>Back at the table, the reading kept during the mission is applied (called every frame by the route piece).</summary>
+        public void TickSuitsDeferred(float now)
+        {
+            if (!suitsDeferred || MissionActive) return;
+            suitsDeferred = false;
+            // Planned at once: it is the first reading since the mission, whatever time passed.
+            suitsPlannedAt = -100f;
+            bool live = SuitsLive;
+            SuitsLive = false;
+            if (!ApplySuitsReading(deferredReading, deferredAt, now)) SuitsLive = live;
+        }
+
         /// <summary>Ends the link (the test, or a future button): the full tank and the WHAT IF come back.</summary>
         public void StopSuits()
         {
             SuitsConfig = null;
+            suitsDeferred = false;
             if (!SuitsLive) return;
             SuitsLive = false;
             tankNote = null;

@@ -201,6 +201,7 @@ namespace Walkback
         partial void UpdateRoute()
         {
             TickPendingPlan();
+            TickSuitsDeferred(Time.unscaledTime);
             // WHAT IF: F on the keyboard, or a click of the left thumbstick. Not while the map is locked
             // (globe opening, inside a 360° photo), nor during a fade or right after the mission.
             if (MissionActive) missionSeenAt = Time.unscaledTime;

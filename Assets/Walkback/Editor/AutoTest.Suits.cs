@@ -103,6 +103,33 @@ namespace Walkback.EditorTools
             app.NextWhatIf();
             Check("SUITS: while the link is live the WHAT IF button does not change the tank", Mathf.Approximately(app.WhatIfTankPercent, 70f));
 
+            // During the mission the plan stays; the reading is applied back at the table.
+            if (app.mission != null)
+            {
+                var cam = app.desktopCamera;
+                Vector3 wasAt = cam.transform.position;
+                Quaternion wasLooking = cam.transform.rotation;
+                Color background = cam.backgroundColor;
+                float farPlane = cam.farClipPlane;
+                bool tableWas = app.table.gameObject.activeSelf, mapWas = app.mapRoot.gameObject.activeSelf, panelWas = app.panel.gameObject.activeSelf;
+                MapLayer layerBefore = app.terrain.Layer;
+                bool entered = app.mission.NextMode(cam.transform) && app.MissionActive;
+                MissionFallback.Plan during = app.Plan;
+                var low = r1; low.primaryO2 = 40f;
+                bool kept = !app.ApplySuitsReading(low, DateTime.UtcNow, 2000f) && app.Plan == during && Mathf.Approximately(app.WhatIfTankPercent, 70f) && app.SuitsReadingWaiting;
+                app.mission.Switch(MissionMode.Mode.Table, cam.transform);
+                app.TickSuitsDeferred(2001f);
+                Check("SUITS: during a mission the plan keeps its tank; back at the table the reading kept is applied",
+                    entered && kept && !app.SuitsReadingWaiting && Mathf.Approximately(app.WhatIfTankPercent, 40f), "entered " + entered + ", kept " + kept + ", tank " + app.WhatIfTankPercent);
+                app.terrain.ShowLayer(layerBefore);
+                app.table.gameObject.SetActive(tableWas);
+                app.mapRoot.gameObject.SetActive(mapWas);
+                app.panel.gameObject.SetActive(panelWas);
+                cam.transform.SetPositionAndRotation(wasAt, wasLooking);
+                cam.backgroundColor = background;
+                cam.farClipPlane = farPlane;
+            }
+
             app.StopSuits();
             Check("SUITS: stopping the link brings back the full tank and the usual note",
                 !app.SuitsLive && Mathf.Approximately(app.WhatIfTankPercent, 100f) && app.Plan != null && Mathf.Approximately(app.Plan.TankPercent, 100f) &&
