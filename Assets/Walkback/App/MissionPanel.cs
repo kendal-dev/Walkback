@@ -206,6 +206,7 @@ namespace Walkback
                 SetActiveLayer(app.terrain.Layer);
             }
             app.StopSelected += OnStopSelected;
+            app.StopPreviewed += OnStopPreviewed;
             BuildStopButtons(app.terrain != null && app.terrain.Site != null ? app.terrain.Site.Stops : new StopInfo[0]);
             if (jumpButton != null)
                 jumpButton.onClick = () => { if (boundApp != null && boundApp.SelectedStop >= 0) boundApp.RequestJump(boundApp.SelectedStop); };
@@ -221,6 +222,7 @@ namespace Walkback
             {
                 if (boundApp.terrain != null) boundApp.terrain.LayerChanged -= OnLayerChanged;
                 boundApp.StopSelected -= OnStopSelected;
+                boundApp.StopPreviewed -= OnStopPreviewed;
             }
             boundApp = null;
         }
@@ -238,6 +240,43 @@ namespace Walkback
         void OnStopSelected(int index)
         {
             ShowStop(index);
+        }
+
+        /// <summary>First line of the stop card while the pointer is on a pillar that is not the selected stop.</summary>
+        public const string PreviewBadge = "PREVIEW · press the pillar to select it";
+
+        /// <summary>True while the stop card shows a pillar under the pointer instead of the selected stop.</summary>
+        public bool ShowingPreview { get; private set; }
+
+        /// <summary>
+        /// The pointer went onto a stop's pillar (index) or left it (-1). The card shows that stop as a preview;
+        /// the selected stop, its button and the 360° PHOTO button do not change, and the card comes back on leaving.
+        /// </summary>
+        void OnStopPreviewed(int index)
+        {
+            int selected = boundApp != null ? boundApp.SelectedStop : -1;
+            if (index < 0 || index == selected)
+            {
+                if (ShowingPreview) ShowStop(selected);
+                return;
+            }
+            ShowPreview(index);
+        }
+
+        /// <summary>The stop card for one stop as a preview (the test calls it too).</summary>
+        public void ShowPreview(int index)
+        {
+            ShowStop(index);
+            if (stopName == null) return;
+            SiteData site = boundApp != null && boundApp.terrain != null ? boundApp.terrain.Site : null;
+            if (site == null || index < 0 || index >= site.Stops.Length) return;
+            int selected = boundApp.SelectedStop;
+            for (int i = 0; i < stopButtons.Count; i++) stopButtons[i].SetSelected(i == selected);
+            stopBadge.text = PreviewBadge;
+            stopBadge.color = WalkbackTheme.Live;
+            // The 360° PHOTO button jumps to the selected stop, not to this one: off while previewing.
+            if (jumpButton != null) jumpButton.SetInteractable(false);
+            ShowingPreview = true;
         }
 
         public void SetActiveLayer(MapLayer layer)
@@ -277,6 +316,7 @@ namespace Walkback
         public void ShowStop(int index)
         {
             if (stopName == null) return;   // side board not built
+            ShowingPreview = false;
             SiteData site = boundApp != null && boundApp.terrain != null ? boundApp.terrain.Site : null;
             StopInfo[] stops = site != null ? site.Stops : new StopInfo[0];
             for (int i = 0; i < stopButtons.Count; i++) stopButtons[i].SetSelected(i == index);

@@ -45,12 +45,21 @@ namespace Walkback
         {
             Hovered = true;
             Refresh();
+            if (!IsHabitat && app != null) app.PreviewStop(StopIndex);
         }
 
         public void OnPointerExit()
         {
             Hovered = false;
             Refresh();
+            if (!IsHabitat && app != null) app.EndPreview(StopIndex);
+        }
+
+        void OnDisable()
+        {
+            // Hidden while the pointer was on it (mission, 360° photo): the preview must not stay on the board.
+            if (Hovered && !IsHabitat && app != null) app.EndPreview(StopIndex);
+            Hovered = false;
         }
 
         public void OnPointerClick(Vector3 worldPoint)

@@ -25,6 +25,62 @@ namespace Walkback.EditorTools
             CheckPanelTextFits(panel);
         }
 
+        /// <summary>
+        /// v1.1: pointing at a stop's pillar shows that stop's card as a preview; leaving it brings the selected
+        /// stop's card back. Called with stop 1 selected.
+        /// </summary>
+        static void CheckStopPreview(WalkbackApp app, MissionPanel panel, StopInfo[] stops)
+        {
+            StopPillars pillars = app.stopPillars;
+            if (pillars == null || pillars.Stops.Count < 2)
+            {
+                Check("Preview: the map has at least two stop pillars", false, "no pillars");
+                return;
+            }
+            PillarView other = pillars.Stops[0];
+            other.OnPointerEnter();
+            Check("Preview: pointing at another stop's pillar shows its card, marked PREVIEW, without selecting it",
+                app.PreviewedStop == 0 && app.SelectedStop == 1 && panel.ShowingPreview &&
+                panel.stopName.text == stops[0].name && panel.stopScience.text == stops[0].science && panel.stopBadge.text == MissionPanel.PreviewBadge,
+                panel.stopName.text + " / " + panel.stopBadge.text);
+            Check("Preview: the selected stop's button stays lit and 360° PHOTO is off while previewing",
+                panel.stopButtons[1].Selected && !panel.stopButtons[0].Selected && !panel.jumpButton.Interactable);
+            Canvas.ForceUpdateCanvases();
+            Check("Preview: the PREVIEW line fits its box on one line",
+                panel.stopBadge.preferredWidth <= ((RectTransform)panel.stopBadge.transform).rect.width,
+                panel.stopBadge.preferredWidth.ToString("F0") + " px in " + ((RectTransform)panel.stopBadge.transform).rect.width.ToString("F0"));
+
+            other.OnPointerExit();
+            Check("Preview: leaving the pillar brings back the selected stop's card and its 360° PHOTO button",
+                app.PreviewedStop == -1 && !panel.ShowingPreview && panel.stopName.text == stops[1].name && panel.jumpButton.Interactable &&
+                panel.stopBadge.text != MissionPanel.PreviewBadge, panel.stopName.text);
+
+            PillarView same = pillars.Stops[1];
+            same.OnPointerEnter();
+            Check("Preview: pointing at the selected stop's own pillar changes nothing on the card",
+                !panel.ShowingPreview && panel.stopName.text == stops[1].name && panel.jumpButton.Interactable);
+            same.OnPointerExit();
+
+            other.OnPointerEnter();
+            other.OnPointerClick(other.transform.position);
+            Check("Preview: pressing the previewed pillar selects it, and the card is no longer a preview",
+                app.SelectedStop == 0 && !panel.ShowingPreview && panel.stopName.text == stops[0].name && panel.jumpButton.Interactable);
+            other.OnPointerExit();
+            Check("Preview: leaving it after pressing keeps the new stop", app.SelectedStop == 0 && panel.stopName.text == stops[0].name && app.PreviewedStop == -1);
+
+            app.SelectStop(-1);
+            other.OnPointerEnter();
+            bool shownWithNone = panel.ShowingPreview && panel.stopName.text == stops[0].name;
+            other.OnPointerExit();
+            Check("Preview: with no stop chosen the preview works, and leaving goes back to NO STOP SELECTED",
+                shownWithNone && panel.stopName.text == "NO STOP SELECTED" && !panel.jumpButton.Interactable);
+
+            pillars.Habitat.OnPointerEnter();
+            Check("Preview: the habitat's pillar shows no preview", app.PreviewedStop == -1 && !panel.ShowingPreview);
+            pillars.Habitat.OnPointerExit();
+            app.SelectStop(1);
+        }
+
         static void CheckPanelButtons(WalkbackApp app, MissionPanel panel)
         {
             var buttons = panel.layerButtons;
@@ -484,6 +540,7 @@ namespace Walkback.EditorTools
             {
                 app.SelectStop(1);
                 Check("Panel: choosing another stop (from a pillar too) updates the card", panel.stopName.text == stops[1].name && panel.stopButtons[1].Selected && !panel.stopButtons[0].Selected);
+                CheckStopPreview(app, panel, stops);
             }
             Check("Panel: tasks line adds up the minutes",
                 MissionPanel.TasksLine(new[] { new StopTask { name = "Describe", minutes = 5f }, new StopTask { name = "Collect", minutes = 11f }, new StopTask { name = "Photo", minutes = 2f } })

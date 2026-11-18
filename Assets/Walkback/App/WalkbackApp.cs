@@ -56,6 +56,27 @@ namespace Walkback
             if (StopSelected != null) StopSelected(index);
         }
 
+        /// <summary>The stop whose pillar the pointer is on right now (index into terrain.Site.Stops), or -1.</summary>
+        public int PreviewedStop { get; private set; } = -1;
+        /// <summary>Raised by PreviewStop and EndPreview: the side board shows that stop's card until the pointer leaves (-1).</summary>
+        public event Action<int> StopPreviewed;
+
+        /// <summary>The pointer is on a stop's pillar: show its card as a preview, without selecting it.</summary>
+        public void PreviewStop(int index)
+        {
+            if (index == PreviewedStop) return;
+            PreviewedStop = index;
+            if (StopPreviewed != null) StopPreviewed(index);
+        }
+
+        /// <summary>The pointer left that stop's pillar: the card goes back to the selected stop.</summary>
+        public void EndPreview(int index)
+        {
+            if (index != PreviewedStop) return;
+            PreviewedStop = -1;
+            if (StopPreviewed != null) StopPreviewed(-1);
+        }
+
         public void RequestJump(int index)
         {
             WalkbackLog.Info("Jump requested: stop " + index);
