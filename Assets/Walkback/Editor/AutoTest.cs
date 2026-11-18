@@ -102,6 +102,10 @@ namespace Walkback.EditorTools
             try
             {
                 WalkbackApp app = SceneBuilder.Build();
+                // v1.1: the verdict's note reads the time at Gale (night / after sunset). The test runs at a fixed
+                // Gale morning (08:00 LMST), so its results do not depend on when it runs.
+                DateTime galeMorning = FindLocal(new DateTime(2026, 11, 18, 0, 0, 0, DateTimeKind.Utc), 137.381, 8.0);
+                app.ClockUtc = () => galeMorning;
                 CheckScene(app);
                 Guard("Route", () => CheckRoute(app));
                 Guard("Panel", () => CheckPanelPiece(app));

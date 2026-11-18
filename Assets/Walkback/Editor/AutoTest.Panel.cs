@@ -29,6 +29,7 @@ namespace Walkback.EditorTools
             CheckTurnBack(app, panel);
             CheckMissionWithMyStop(app, panel);
             CheckWhatIfSign(app, panel);
+            CheckMarsClock(app, panel);
         }
 
         /// <summary>

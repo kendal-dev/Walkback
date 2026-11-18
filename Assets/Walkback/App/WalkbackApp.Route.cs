@@ -135,6 +135,8 @@ namespace Walkback
             if (SuitsLive && tankNote != null) note = tankNote;
             // v1.1: where to turn back, when the plan does not fit its tank.
             else if (TurnBack.found) note = TurnBackPoint.Note(TurnBack, WhatIfTankPercent);
+            // v1.1: a plan started now that does not fit today's daylight at Gale.
+            else if (Plan.HasRoute && DarkNoteNow() != null) note = DarkNoteNow();
             panel.ShowVerdict(state, headline, summary, note);
             // The same plan as charts: oxygen, time and height along the route (empty when there is no route).
             panel.ShowCharts(terrain != null ? terrain.Site : null, Plan);

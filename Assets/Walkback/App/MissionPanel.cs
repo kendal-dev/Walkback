@@ -533,6 +533,16 @@ namespace Walkback
         }
 
         /// <summary>The space-weather line just read from NASA DONKI takes the place of the stored one. Without stored conditions the card stays as it is.</summary>
+        /// <summary>v1.1: the card's daylight line replaced by today's, computed for Gale (MarsClock).</summary>
+        public void ShowLiveDaylight(string line)
+        {
+            if (conditionsText == null || !ConditionsHaveData || string.IsNullOrEmpty(line)) return;
+            string[] lines = conditionsText.text.Split('\n');
+            for (int i = 0; i < lines.Length; i++)
+                if (lines[i].StartsWith(MarsClock.DaylightPrefix, System.StringComparison.Ordinal)) lines[i] = line;
+            conditionsText.text = string.Join("\n", lines);
+        }
+
         public void ShowLiveSpaceWeather(string liveLine)
         {
             if (conditionsText == null || !ConditionsHaveData || string.IsNullOrEmpty(liveLine)) return;

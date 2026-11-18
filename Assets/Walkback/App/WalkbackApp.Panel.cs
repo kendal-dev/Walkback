@@ -52,9 +52,42 @@ namespace Walkback
             WalkbackLog.Info("Space weather: live from NASA DONKI in " + took + " -> " + line);
         }
 
+        // ---- v1.1: the time at Gale (MarsClock), for the daylight line and the verdict's night / sunset note.
+
+        /// <summary>The clock the Mars time is read from (the test sets a fixed time).</summary>
+        public Func<DateTime> ClockUtc = () => DateTime.UtcNow;
+        /// <summary>Seconds between two updates of the daylight line and the night note.</summary>
+        public const float MarsClockSeconds = 30f;
+        float marsClockAt = -100f;
+        string lastDarkNote;
+
+        bool AtGale { get { return terrain != null && terrain.Site != null && terrain.Site.IsMarsData && terrain.Site.Info != null; } }
+
+        /// <summary>The verdict's note if the plan started now would not fit today's daylight at the site, or null.</summary>
+        public string DarkNoteNow()
+        {
+            if (!AtGale || Plan == null || !Plan.HasRoute) return null;
+            return MarsClock.DarkNote(ClockUtc(), terrain.Site.Info.centerLon, terrain.Site.Info.centerLat, Plan.TotalMinutes);
+        }
+
+        /// <summary>Writes today's daylight line on the conditions card and, if the night / sunset note changed, the verdict card again.</summary>
+        public void RefreshMarsClock()
+        {
+            if (!AtGale || panel == null) return;
+            panel.ShowLiveDaylight(MarsClock.DaylightLine(ClockUtc(), terrain.Site.Info.centerLon, terrain.Site.Info.centerLat));
+            string dark = DarkNoteNow();
+            if (dark != lastDarkNote) ShowPlanOnPanel();
+            lastDarkNote = dark;
+        }
+
         partial void UpdatePanelPiece()
         {
             if (panel != null) panel.TickClearConfirm();
+            if (Time.unscaledTime - marsClockAt >= MarsClockSeconds)
+            {
+                marsClockAt = Time.unscaledTime;
+                RefreshMarsClock();
+            }
             // The charts fill in step with the route drawing itself on the map (2.5 s); after that this does nothing.
             if (panel == null || panel.charts == null || !panel.charts.HasPlan || !panel.gameObject.activeInHierarchy) return;
             panel.charts.SetProgress(routeView != null && routeView.HasRoute ? routeView.Progress : 1f);
